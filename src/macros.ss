@@ -1,7 +1,8 @@
 (load "csm/csm.ss")
 
 (library (macros)
-(export char-in with-checker guard <= > == or and watermark)
+(export char-in with-checker with-checker*
+        guard <= > == or and watermark)
 (import (csm)
         (except (chezscheme) guard <= > or and))
 (export (import (csm)))
@@ -19,6 +20,23 @@
                  (char-range (lambda r (forall name
                                                (lambda (ch) (char-in ch (string-literal (apply string-append r))))))))
             body ...))])))
+
+(define-syntax with-checker*
+  (lambda (x)
+    (syntax-case x ()
+      [(k name body ...)
+       (with-syntax ([len (datum->syntax #'k 'len)]
+                     [char-range (datum->syntax #'k 'char-range)])
+         #'(let ((len (string-append (! name) ".length()"))
+                 (char-range (lambda r (forall name
+                                               (lambda (ch) (char-in ch (string-literal (apply string-append r))))))))
+            (and body ...)))])))
+
+#;(define-syntax with-checker*
+  (syntax-rules ()
+    [(_ name body ...)
+     (with-checker name
+       (and body ...))]))
 
 (define (guard fail-value expr)
   (string-append "if (not " (! expr) ")\n"

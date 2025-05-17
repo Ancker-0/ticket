@@ -3,7 +3,8 @@
 (import (csm expand))
 
 (define expand-list
-  '(("macro-test.ss.cpp" . "macro-test.cpp")))
+  '(("macro-test.ss.cpp" . "macro-test.cpp")
+    ("typedecl.ss.cpp" . "typedecl.cpp")))
 
 (define cmd (command-line-arguments))
 
@@ -15,7 +16,8 @@
              (expanded (call-with-input-file from expand)))
         (with-output-to-file to
           (lambda () (printf "~a" expanded))
-          'truncate)))
+          'truncate)
+        (system (format "clang-format -i ~a --style=Google" to))))
     expand-list))
 
 (define (clean-all)
