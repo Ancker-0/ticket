@@ -1,4 +1,7 @@
 all:
-	chez --script ./expand.ss
+	chez --script ./expand.ss expand
 
-.PHONY: all
+clean:
+	chez --script ./expand.ss clean
+
+.PHONY: all clean

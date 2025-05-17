@@ -29,7 +29,7 @@
   (apply string-append (reverse res-list)))
 )
 
-;#!eof
+#!eof
 
 (import (csm expand))
 
