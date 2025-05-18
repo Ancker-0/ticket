@@ -5,10 +5,10 @@
 (define (println x)
   (display x) (newline))
 
-(define (expand port)
+(define (expand/env port env)
   (define res-list '())
   (define (add ch) (set! res-list (cons ch res-list)))
-  (define env (copy-environment (environment '(chezscheme))))
+  ;(define env (copy-environment (environment '(chezscheme))))
 
   (let loop ()
     (define ch (get-char port))
@@ -27,7 +27,13 @@
        (add (string ch)) (loop)])
     )
   (apply string-append (reverse res-list)))
-)
+
+(define expand
+  (case-lambda
+    [(port) (expand/env port (copy-environment (environment '(chezscheme))))]
+    [(port env) (expand/env port env)]))
+
+) ; end of library
 
 #!eof
 
