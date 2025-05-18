@@ -14,11 +14,21 @@
      (syntax-rules ()
        [(_ arg ...)
         (register-handler (symbol->string 'arg) ...)]))
+   (define-syntax check
+     (syntax-rules ()
+       [(_ fail-value (arg checker) ...)
+        (str+ "if (not (" (and (str+ (conv checker) "(g" (->string 'arg) ")") ...) "))\n  return " fail-value ";")]))
    (watermark* "For dispatching commands"))
 
 #include <string>
 
+#include "typedecl.cpp"
+
 @(register-handler/s add_user cupnmg) {
+  @(check "\"-1\""
+     [c username]
+     [u username]
+     [p password])
 }
 
 @(register-handler/s login up) {

@@ -9,17 +9,19 @@
    (define other-ascii "!\"#$%&´()*+,-./:;<=>?@[\\]^_`{}~")
    (define visible-ascii (str+ a-z A-Z 0-9 bar-ascii other-ascii))
 
-   ;; register table
+   ;; register-checker table
    (define string-converter-table (make-hash-table))
 
-   (define-syntax register
+   (define-syntax register-checker
      (syntax-rules ()
        [(_ symb name)
         (put-hash-table! string-converter-table 'symb name)]
        [(_ symb name #t)
         (begin
-          (put-hash-table! string-converter-table 'symb name)
-          (apply str+ `("const auto " ,(symbol->string 'symb) "_checker = " ,name ";\n")))]))
+          (put-hash-table! string-converter-table 'symb (symbol->string 'symb))
+          (let ((entry (str+ (symbol->string 'symb) "_checker")))
+            (register-checker symb entry)
+            (apply str+ `("const auto " ,entry " = " ,name ";\n"))))]))
 
    (define-syntax conv
      (syntax-rules ()
@@ -32,7 +34,7 @@
 #include <string>
 #include <iostream>
 
-@(register username
+@(register-checker username
    (λ ("std::string s")
      (return
        (with-checker* "s"
@@ -42,7 +44,7 @@
          (char-in "s[0]" (string-literal (str+ A-Z a-z))))))
 #t)
 
-@(register password
+@(register-checker password
    (λ ("std::string s")
      (return
        (with-checker* "s"
@@ -51,7 +53,7 @@
          (char-range visible-ascii))))
   #t)
 
-@(register mail
+@(register-checker mail
   (λ ("std::string s")
     (return
       (with-checker* "s"
