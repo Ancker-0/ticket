@@ -1,14 +1,17 @@
 (load "csm/expand.ss")
+(load "csm/csm.ss")
 
-(import (csm expand))
+(import (csm expand)
+        (only (csm) flatten))
 
 (define expand-list
   '(("macro-test.ss.cpp" . "macro-test.cpp")
     ("typedecl.ss.cpp" . "typedecl.cpp")))
 
 (define expand-group-list
-  '((("macro-test.ss.cpp" . "macro-test.cpp") )
-    (("typedecl.ss.cpp" . "typedecl.cpp") )))
+  '((("macro-test.ss.cpp" . "macro-test.cpp"))
+    (("typedecl.ss.cpp" . "typedecl.cpp")
+     ("cmd.ss.h" . "cmd.h"))))
 
 (define cmd (command-line-arguments))
 
@@ -52,7 +55,9 @@
       (let* ((from (car x))
              (to (cdr x)))
         (delete-file to)))
-    expand-list))
+    (append
+      expand-list
+      (flatten expand-group-list))))
 
 (cond
   [(null? cmd)

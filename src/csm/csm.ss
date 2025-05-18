@@ -1,7 +1,7 @@
 (library (csm)
 (export op ops ! flatten
         begins genname str+ string-literal
-        forall forsome return λ)
+        forall forsome return λ join)
 (import (chezscheme))
 
 (define (! s) (string-append "(" s ")"))
@@ -89,6 +89,11 @@
   (syntax-rules ()
     [(_ (arg ...) body ...)
      (apply str+ `("([](" ,(gen-arg (list arg ...)) "){ " ,body ... " })"))]))
+
+(define (join seperator lst)
+  (cond
+    [(null? lst) ""]
+    [else (apply str+ `(,(car lst) ,@(flatten (map (lambda (x) (list seperator x)) (cdr lst)))))]))
 
 )
 
