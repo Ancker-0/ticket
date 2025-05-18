@@ -61,6 +61,7 @@
         (char-range A-Z a-z 0-9 "@."))))
  #t)
 
+/*
 int main() {
   std::string s;
   std::cin >> s;
@@ -69,3 +70,4 @@ int main() {
   std::cout << @(conv mail)(s) << std::endl;
   return 0;
 }
+*/

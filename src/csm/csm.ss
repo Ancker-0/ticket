@@ -1,7 +1,17 @@
+;;; TODO: Add block macro
+;;; e.g.
+;;; @block-define body
+;;; for (int @name = 0; @name < @end; ++@name )
+;;; @end-block
+;;; =>  (list "for (int " name " = 0; " name " < " end "; ++" name " )")
+;;;
+;;; This allow code to be restored and used in other context
+
 (library (csm)
-(export op ops ! flatten
-        begins genname str+ string-literal
-        forall forsome return λ join)
+(export op ops ! flatten str+/flatten
+        begins braces genname str+ string-literal
+        forall forsome return λ join
+        COND)
 (import (chezscheme))
 
 (define (! s) (string-append "(" s ")"))
@@ -29,7 +39,14 @@
            ,@(flatten (map (lambda (x) (list x "\n")) args))
            "})")))
 
+(define (braces . args)
+  (apply string-append 
+         `("{\n"
+           ,@(flatten (map (lambda (x) (list x "\n")) args))
+           "}")))
+
 (define str+ string-append)
+(define (str+/flatten . r) (apply str+ (flatten r)))
 
 (define genname
   (let ((counter 0))
@@ -94,6 +111,30 @@
   (cond
     [(null? lst) ""]
     [else (apply str+ `(,(car lst) ,@(flatten (map (lambda (x) (list seperator x)) (cdr lst)))))]))
+
+(define-syntax COND
+  (syntax-rules (else)
+    [(_ [condition cond-expr ...]
+        [condition-r cond-expr-r ...] ...
+        [else else-expr ...])
+     (apply str+/flatten
+            `("if (" ,condition ") {\n"
+              ,(list cond-expr ...)
+              "\n}"
+              ,(list " else if (" condition-r ") {\n" cond-expr-r ... "\n}")
+              ...
+              " else {" else-expr ... "}"
+              ))]
+    [(_ [condition cond-expr ...]
+        [condition-r cond-expr-r ...] ...)
+     (apply str+/flatten
+            `("if (" ,condition ") {\n"
+              ,(list cond-expr ...)
+              "\n}"
+              ,(list " else if (" condition-r ") {\n" cond-expr-r ... "\n}")
+              ...
+              ))]
+    ))
 
 )
 

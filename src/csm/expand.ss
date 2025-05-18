@@ -19,7 +19,9 @@
          [else
            (let* ((expr (read port))
                   ;(_ (println expr))
-                  (r (eval expr env)))
+                  (r
+                    (parameterize ([interaction-environment env])
+                      (eval expr env))))
              (when (string? r)
                (add r)))])
        (loop)]
