@@ -22,7 +22,7 @@
    (define-syntax check
      (syntax-rules ()
        [(_ fail-value (arg checker) ...)
-        (str+ "if (not (" (and (str+ (conv checker) "(g" (->string 'arg) ")") ...) "))\n  return " fail-value ";")]))
+        (str+ "if (not (" (and (str+ (get-checker checker) "(g" (->string 'arg) ")") ...) "))\n  return " fail-value ";")]))
    (watermark* "For dispatching commands"))
 
 #ifndef CMD_H

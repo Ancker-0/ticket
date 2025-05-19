@@ -72,6 +72,7 @@
   (cond
     [(string? s) s]
     [(symbol? s) (symbol->string s)]
+    [(number? s) (number->string s)]
     [else (error '->string (format "unrecognized type of ~s" s))]))
 
 )
