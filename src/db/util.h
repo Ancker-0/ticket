@@ -78,4 +78,17 @@ static cstr<size> string2cstr(std::string s) {
   return ret;
 }
 
+static int string2non_negative(std::string s) {
+  // return std::atoi(s.c_str());
+  Massert(s.size() > 0, "empty string");
+  Massert(s.size() <= 10, "too large");
+  long long ret = 0;
+  for (int i = 0; i < (int)s.size(); ++i) {
+    Massert('0' <= s[i] and s[i] <= '9', "not number");
+    ret = ret * 10 + s[i] - '0';
+  }
+  Massert(-2147483648 <= ret and ret <= 2147483647, "too large");
+  return (int)ret;
+}
+
 #endif //UTIL_H

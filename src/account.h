@@ -1,6 +1,7 @@
 #ifndef ACCOUNT_H
 #define ACCOUNT_H
 
+#include "typedecl.h"
 #include "db/fs.h"
 #include "db/database.h"
 

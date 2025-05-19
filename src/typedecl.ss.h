@@ -10,29 +10,42 @@
    (define visible-ascii (str+ a-z A-Z 0-9 bar-ascii other-ascii))
 
    ;; register-checker table
-   (define string-checker-table (make-hash-table))
-   (define string-converter-table (make-hash-table))
+   (define string-checker-table (make-hashtable string-hash equal?))
+   (define string-converter-table (make-hashtable string-hash equal?))
+
+   (define (print-checkers)
+     (let-values ([(ks vs) (hashtable-entries string-checker-table)])
+       (printf "hash:\n~s\n~s\n" ks vs)))
 
    (define (register-converter/p name value)
-     (put-hash-table! string-converter-table name value))
+     (when (not (string? name)) (error 'converter "not a string"))
+     (hashtable-set! string-converter-table name value))
 
    (define-syntax register-checker
      (syntax-rules ()
        [(_ symb name)
-        (put-hash-table! string-checker-table 'symb name)]
+        (hashtable-set! string-checker-table (->string 'symb) name)]
        [(_ symb name #t)
         (begin
-          (put-hash-table! string-checker-table 'symb (symbol->string 'symb))
           (let ((entry (str+ (symbol->string 'symb) "_checker")))
             (register-checker symb entry)
             (apply str+ `("const auto " ,entry " = " ,name ";\n"))))]))
 
    (define (get-checker/p name)
-     (get-hash-table string-checker-table name '*))
+     (when (not (string? name)) (error 'get-checker (format "~s not a string" name)))
+     (hashtable-ref string-checker-table name '*))
+
+   (define (get-converter/p name)
+     (when (not (string? name)) (error 'get-checker (format "~s not a string" name)))
+     (hashtable-ref string-converter-table name '*))
 
    (define-syntax get-checker
      (syntax-rules ()
-       [(_ symb) (get-hash-table string-checker-table 'symb '*)]))
+       [(_ symb) (get-checker/p (symbol->string 'symb))]))
+
+   (define-syntax get-converter
+     (syntax-rules ()
+       [(_ symb) (get-converter/p (symbol->string 'symb))]))
 
    ;; credit Chez Scheme
    (watermark))
@@ -40,6 +53,7 @@
 #include <cstdio>
 #include <string>
 #include <iostream>
+#include <cassert>
 
 #include "db/util.h"
 
@@ -62,6 +76,12 @@
          (char-range visible-ascii))))
   #t)
 
+@(register-checker realname "realname_checker")
+bool realname_checker(std::string s) {
+  // TODO: check UTF8 hans character
+  return 2 <= s.length() and s.length() <= 20;
+}
+
 @(register-checker mail
   (λ ("std::string s")
     (return
@@ -70,6 +90,12 @@
         (char-range A-Z a-z 0-9 "@."))))
  #t)
 
+@(register-checker privilege "privilege_checker")
+@(register-converter/p "privilege" "string2non_negative")
+bool privilege_checker(std::string s) {
+  int x = string2non_negative(s);
+  return 0 <= x and x <= 10;
+}
 
 // #define DF(n, len) using n##_t = cstr<len>;
 @(define-syntax DF
@@ -77,7 +103,6 @@
      [(_ n len)
       (begin
         (define name (symbol->string 'n))
-        (printf "name = ~s\n" name)
         (define type (str+ (symbol->string 'n) "_t"))
         (define converter-name (str+ name "_converter"))
         (register-converter/p name converter-name)
@@ -85,7 +110,7 @@
           (list
             (str+ "using " type " = cstr<" (->string len) ">;")
             (str+ type " " converter-name "(std::string s) {\n"
-                  "assert(" (get-checker/p 'n) "(s));\n"
+                  "assert(" (get-checker/p (->string 'n)) "(s));\n"
                   "return string2cstr<" (->string len)  ">(s);\n"
                   "}"
                   ))
@@ -93,11 +118,26 @@
 
 @(DF username 20)
 @(DF password 30)
-// (DF realname (1+ (* 4 5)))
-// (DF mail 30)
-// (DF privilege 30)
+@(DF realname (* 4 5))
+@(DF mail 30)
+using privilege_t = int;
+
 
 struct user_profile {
+  username_t username;
+  password_t password;
+  realname_t realname;
+  privilege_t privilege;
+  user_profile(std::string s0, std::string s1, std::string s2, std::string s3) {
+    assert(@(get-checker username)(s0));
+    assert(@(get-checker password)(s1));
+    assert(@(get-checker realname)(s2));
+    assert(@(get-checker privilege)(s3));
+    username = @(get-converter username)(s0);
+    password = @(get-converter password)(s1);
+    realname = @(get-converter realname)(s2);
+    privilege = @(get-converter privilege)(s3);
+  }
 };
 
 /*

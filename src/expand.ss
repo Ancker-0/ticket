@@ -40,7 +40,8 @@
           (with-output-to-file to
             (lambda () (printf "~a" expanded))
             'truncate)
-          (clang-format to)))
+          (clang-format to)
+          (printf "~a expanded!\n" to)))
       lst))
   (for-each
     (lambda (lst)
