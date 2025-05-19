@@ -32,7 +32,7 @@
 #include <string>
 #include <cassert>
 
-#include "typedecl.cpp"
+#include "typedecl.h"
 #include "vector.h"
 // #include <vector>
 // namespace sjtu {
@@ -176,7 +176,7 @@ void dispatch(std::string line) {
              if (k == \"" (string now) "\")\
              values.push_back(v);\
              assert(values.size() <= 1);\
-             if (values.size()) arguments.push_back(values[0]);\
+             if (!values.empty()) arguments.push_back(values[0]);\
              else arguments.push_back(\"\"); }"))
          (string->list optional)))
 

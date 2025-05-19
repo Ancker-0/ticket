@@ -6,11 +6,11 @@
 
 (define expand-list
   '(("macro-test.ss.cpp" . "macro-test.cpp")
-    ("typedecl.ss.cpp" . "typedecl.cpp")))
+    ("typedecl.ss.h" . "typedecl.h")))
 
 (define expand-group-list
   '((("macro-test.ss.cpp" . "macro-test.cpp"))
-    (("typedecl.ss.cpp" . "typedecl.cpp")
+    (("typedecl.ss.h" . "typedecl.h")
      ("cmd.ss.h" . "cmd.h"))))
 
 (define cmd (command-line-arguments))
