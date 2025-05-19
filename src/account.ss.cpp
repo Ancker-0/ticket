@@ -1,0 +1,94 @@
+#include "account.h"
+
+Account::Account(): bf("account.db"), db(bf) {
+}
+
+bool Account::logged_in(username_t user) {
+  for (auto &s : login_list)
+    if (user == s)
+      return true;
+  return false;
+}
+
+bool Account::exists(username_t user) {
+  return db.exist(user);
+}
+
+bool Account::add_user(username_t cur, user_profile profile) {
+  bool init;
+  bf.getHeaderT(1, init);
+  if (!init) {
+    init = true;
+    profile.privilege = 10;
+    db.insert(profile.username, profile);
+    bf.putT(bf.getHeaderPos(1), init);
+    return true;
+  }
+  try {
+    user_profile cur_profile = db.get(cur);
+    if (!logged_in(cur) or exists(profile.username) or cur_profile.privilege <= profile.privilege)
+      return false;
+    db.insert(profile.username, profile);
+    return true;
+  } catch(const Error &) {
+    return false;
+  }
+  return false;
+}
+
+bool Account::login(username_t username, password_t password) {
+  if (logged_in(username) or !exists(username))
+    return false;
+  user_profile prof = db.get(username);
+  if (password != prof.password)
+    return false;
+  login_list.push_back(username);
+  return true;
+}
+
+bool Account::logout(username_t username) {
+  if (!logged_in(username))
+    return false;
+  for (size_t i = 0; i < login_list.size(); ++i)
+    if (login_list[i] == username) {
+      login_list.erase(login_list.begin() + i);
+      return true;
+    }
+  return assert(false), false;
+}
+
+user_profile Account::query_profile(username_t cur, username_t user) {
+  if (!logged_in(cur))
+    throw Error("user not logged in");
+  if (!exists(user))
+    throw Error("user does not exist");
+  user_profile cur_p = db.get(cur), user_p = db.get(user);
+  if (cur != user and cur_p.privilege <= user_p.privilege)
+    throw Error("access denied");
+  return user_p;
+}
+
+user_profile Account::modify_profile(username_t cur, username_t user, std::string gp, std::string gn, std::string gm,
+  std::string gg) {
+  if (!logged_in(cur))
+    throw Error("user not logged in");
+  if (!exists(user))
+    throw Error("user does not exist");
+  user_profile cur_p = db.get(cur), user_p = db.get(user);
+  if (cur != user and cur_p.privilege <= user_p.privilege)
+    throw Error("access denied");
+
+  @(define (fill/p name field) (str+ "if (" name " != \"\") user_p." (->string field) " = " (get-converter/p field) "(" name ");" ))
+  @(define-syntax fill
+     (syntax-rules ()
+       [(_ name field)
+        (fill/p (->string 'name) (->string 'field))]))
+  @(fill gp password)
+  @(fill gn realname)
+  @(fill gm mail)
+  if (gg != "" and string2non_negative(gg) < cur_p.privilege) {
+    @(fill gg privilege)
+  }
+  db.modify(user, user_p);
+  return user_p;
+}

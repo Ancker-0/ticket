@@ -11,7 +11,8 @@
 (define expand-group-list
   '((("macro-test.ss.cpp" . "macro-test.cpp"))
     (("typedecl.ss.h" . "typedecl.h")
-     ("cmd.ss.h" . "cmd.h"))))
+     ("cmd.ss.h" . "cmd.h")
+     ("account.ss.cpp" . "account.cpp"))))
 
 (define cmd (command-line-arguments))
 

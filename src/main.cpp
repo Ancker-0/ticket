@@ -5,7 +5,9 @@ int main() {
   while (std::getline(std::cin, tmp)) {
     if (tmp == "")
       continue;
-    dispatch(tmp);
+    std::cout << dispatch(tmp) << std::endl;
+    if (tmp == "exit")
+      return 0;
   }
   return 0;
 }

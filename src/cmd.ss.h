@@ -3,17 +3,17 @@
 
    (define handlers '())
 
-   (define (get-handler x) x)
+   (define (get-handler x) (str+ x "_handler"))
 
    (define register-handler
      (case-lambda
        [(name) (register-handler name "" "")]
        [(name must) (register-handler name must "")]
        [(name must optional)
-        (set! name (->string name))
+        (set! name (str+ (->string name) ""))
         (set! handlers (cons (cons name (list must optional)) handlers))
         (let* ((args (join ", " (map (lambda (x) (str+ "[[maybe_unused]] const std::string &g" (string x))) (string->list (str+ must optional))))))
-          (str+ "std::string " name "(" args ")"))
+          (str+ "std::string " (get-handler name) "(" args ")"))
         ]))
    (define-syntax register-handler/s
      (syntax-rules ()
@@ -23,6 +23,10 @@
      (syntax-rules ()
        [(_ fail-value (arg checker) ...)
         (str+ "if (not (" (and (str+ (get-checker checker) "(g" (->string 'arg) ")") ...) "))\n  return " fail-value ";")]))
+   (define-syntax check-optional
+     (syntax-rules ()
+       [(_ fail-value (arg checker) ...)
+        (str+ "if (not (" (and (or (== (str+ "g" (->string 'arg)) "\"\"") (str+ (get-checker checker) "(g" (->string 'arg) ")")) ...) "))\n  return " fail-value ";")]))
    (watermark* "For dispatching commands"))
 
 #ifndef CMD_H
@@ -34,71 +38,138 @@
 
 #include "typedecl.h"
 #include "vector.h"
+#include "account.h"
 // #include <vector>
 // namespace sjtu {
 //   template <typename T> using vector = std::vector<T>;
 // };
 
 @(register-handler/s add_user cupnmg) {
+  // TODO: no check -c and -g for the first user
   @(check "\"-1\""
      [c username]
      [u username]
-     [p password])
+     [p password]
+     [n realname]
+     [m mail]
+     [g privilege])
+  return accounter.add_user(@(convert-to username gc), user_profile(gu, gp, gn, gm, gg)) ? "0" : "-1";
 }
 
 @(register-handler/s login up) {
+  @(check "\"-1\""
+     [u username]
+     [p password])
+  return accounter.login(@(convert-to username gu), @(convert-to password gp)) ? "0" : "-1";
 }
 
 @(register-handler/s logout u) {
+  @(check "\"-1\"" [u username])
+  return accounter.logout(@(convert-to username gu)) ? "0" : "-1";
 }
 
 @(register-handler/s query_profile cu) {
+  @(check "\"-1\""
+     [c username]
+     [u username])
+  try {
+    user_profile prof = accounter.query_profile(@(convert-to username gc), @(convert-to username gu));
+    if (gc == "Savage" and gu == "Catapult")
+      std::cerr << "! " << (std::string)accounter.db.get(@(convert-to username gc)) << '\n' << (std::string)accounter.db.get(@(convert-to username gu)) << std::endl;
+    return (std::string)prof;
+  } catch (const Error &e) {
+    return "-1";
+  }
+  return assert(false), "-1";
 }
 
 @(register-handler/s modify_profile cu pnmg) {
-  printf("hi\n");
-  return "ha";
+  @(check "\"-1\""
+     [c username]
+     [u username])
+  @(check-optional "\"-1\""
+     [p password]
+     [n realname]
+     [m mail]
+     [g privilege])
+  try {
+    user_profile prof = accounter.modify_profile(@(convert-to username gc), @(convert-to username gu), gp, gn, gm, gg);
+    return (std::string)prof.username + " " + (std::string)prof.realname + " " + (std::string)prof.mail + " " + number2string(prof.privilege);
+  } catch (const Error &) {
+    return "-1";
+  }
+  return assert(false), "-1";
 }
 
 @(register-handler/s add_train inmspxtody) {
+  return "sorry, not implemented!";
 }
 
 @(register-handler/s delete_train i) {
+  return "sorry, not implemented!";
 }
 
 @(register-handler/s release_train i) {
+  return "sorry, not implemented!";
 }
 
 @(register-handler/s query_train id) {
+  return "sorry, not implemented!";
 }
 
 @(register-handler/s query_ticket std p) {
+  return "sorry, not implemented!";
 }
 
 @(register-handler/s query_transfer std p) {
+  return "sorry, not implemented!";
 }
 
 @(register-handler/s buy_ticket uidnft q) {
+  return "sorry, not implemented!";
 }
 
 @(register-handler/s query_order u) {
+  return "sorry, not implemented!";
 }
 
 @(register-handler/s refund_ticket u n) {
+  return "sorry, not implemented!";
 }
 
 @(register-handler/s clean) {
+  return "sorry, not implemented!";
 }
 
 @(register-handler/s exit) {
+  return "bye";
 }
 
-void dispatch(std::string line) {
+std::string dispatch(std::string line) {
   @(define eatspace "while (p < (int)line.size() and line[p] == ' ') ++p;")
   @(define endofstr "(p >= (int)line.size())")
   @(define getword (str+ "({ std::string tmp; " eatspace "while(!" endofstr " and line[p] != ' ') { tmp += line[p++]; } tmp;" "})"))
 
   long long time = 0;
+
+#if WEAK_TIME
+  int p = 0;
+  if (line[0] == '[') {
+    assert(line.size() and line[0] == '[');
+    p = 1;
+    for (; p < (int)line.size(); ++p) {
+      if ('0' <= line[p] and line[p] <= '9')
+        time = time * 10 + line[p] - '0';
+      else if (line[p] == ']')
+        break;
+      else
+        assert(false);
+    }
+    assert(p + 1 < (int)line.size() and line[p] == ']' and line[p + 1] == ' ');
+    ++p;
+  } else
+    time = -1;
+#else
   assert(line.size() and line[0] == '[');
   int p = 1;
   for (; p < (int)line.size(); ++p) {
@@ -111,6 +182,10 @@ void dispatch(std::string line) {
   }
   assert(p + 1 < (int)line.size() and line[p] == ']' and line[p + 1] == ' ');
   ++p;
+#endif
+
+  std::string time_str = "[" + number2string(time) + "] ";
+
   @eatspace
   std::string cmd = @getword;
 
@@ -128,8 +203,8 @@ void dispatch(std::string line) {
     kvpair.push_back({k, v});
   }
 
-  for (auto [k, v] : kvpair)
-    printf("%s => %s\n", k.data(), v.data());
+  // for (auto [k, v] : kvpair)
+  //   printf("%s => %s\n", k.data(), v.data());
 
   // sjtu::vector<std::string> values;
   // for (auto &[k, v] : kvpair)
@@ -154,7 +229,7 @@ void dispatch(std::string line) {
                [else (loop (1+ n) (1- m) (append r (list n)))])))
          (define arguments
            (map (lambda (n) (str+ "arguments[" (number->string n) "]")) numbers))
-         (str+/flatten (get-handler cmd) "(" (join ", " arguments) ");")))
+         (str+/flatten "return time_str + " (get-handler cmd) "(" (join ", " arguments) ");")))
 
      (define chk-must-stmt
        (map
@@ -194,5 +269,7 @@ void dispatch(std::string line) {
              (caller ,name))))
        handlers))
   @(eval (cons 'COND form))
+  
+  return time_str + "unrecognized command!";
 }
 #endif

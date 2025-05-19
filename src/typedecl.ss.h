@@ -47,8 +47,19 @@
      (syntax-rules ()
        [(_ symb) (get-converter/p (symbol->string 'symb))]))
 
+   (define-syntax convert-to
+     (syntax-rules ()
+       [(_ type name)
+        (symbol? (syntax->datum #'name))
+        (str+ (get-converter type) "(" (->string 'name) ")")]
+       [(_ type name)
+        (str+ (get-converter type) "(" name ")")]))
+
    ;; credit Chez Scheme
    (watermark))
+
+#ifndef TYPEDECL_H
+#define TYPEDECL_H
 
 #include <cstdio>
 #include <string>
@@ -77,7 +88,7 @@
   #t)
 
 @(register-checker realname "realname_checker")
-bool realname_checker(std::string s) {
+static bool realname_checker(std::string s) {
   // TODO: check UTF8 hans character
   return 2 <= s.length() and s.length() <= 20;
 }
@@ -92,7 +103,7 @@ bool realname_checker(std::string s) {
 
 @(register-checker privilege "privilege_checker")
 @(register-converter/p "privilege" "string2non_negative")
-bool privilege_checker(std::string s) {
+static bool privilege_checker(std::string s) {
   int x = string2non_negative(s);
   return 0 <= x and x <= 10;
 }
@@ -109,7 +120,7 @@ bool privilege_checker(std::string s) {
         (join "\n"
           (list
             (str+ "using " type " = cstr<" (->string len) ">;")
-            (str+ type " " converter-name "(std::string s) {\n"
+            (str+ "static " type " " converter-name "(std::string s) {\n"
                   "assert(" (get-checker/p (->string 'n)) "(s));\n"
                   "return string2cstr<" (->string len)  ">(s);\n"
                   "}"
@@ -127,16 +138,23 @@ struct user_profile {
   username_t username;
   password_t password;
   realname_t realname;
+  mail_t mail;
   privilege_t privilege;
-  user_profile(std::string s0, std::string s1, std::string s2, std::string s3) {
+  user_profile() = default;
+  user_profile(std::string s0, std::string s1, std::string s2, std::string s3, std::string s4) {
     assert(@(get-checker username)(s0));
     assert(@(get-checker password)(s1));
     assert(@(get-checker realname)(s2));
-    assert(@(get-checker privilege)(s3));
+    assert(@(get-checker mail)(s3));
+    assert(@(get-checker privilege)(s4));
     username = @(get-converter username)(s0);
     password = @(get-converter password)(s1);
     realname = @(get-converter realname)(s2);
-    privilege = @(get-converter privilege)(s3);
+    mail = @(get-converter mail)(s3);
+    privilege = @(get-converter privilege)(s4);
+  }
+  explicit operator std::string() {
+    return (std::string)username + " " + (std::string)realname + " " + (std::string)mail + " " + number2string(privilege);
   }
 };
 
@@ -150,3 +168,5 @@ int main() {
   return 0;
 }
 */
+
+#endif

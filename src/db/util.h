@@ -8,14 +8,16 @@
 namespace sjtu {
 template <typename T, size_t size>
 class array {
-  T data[size];
+  T arr[size];
 public:
   array() = default;
   array &operator=(const array<T, size> &o) {
     for (size_t i = 0; i < size; ++i)
-      data[i] = o.data[i];
+      arr[i] = o.arr[i];
     return *this;
   }
+  T *data() { return arr; }
+  const T *data() const { return arr; }
 };
 }
 
@@ -23,6 +25,10 @@ template <size_t size>
 class cstr : public sjtu::array<char, size + 1> {
 public:
   static constexpr int N = size;
+
+  explicit operator std::string() const {
+    return sjtu::array<char, size + 1>::data();
+  }
 };
 
 typedef int64_t pos_t;
@@ -76,6 +82,12 @@ static cstr<size> string2cstr(std::string s) {
   cstr<size> ret;
   strncpy(ret.data(), s.c_str(), size + 1);
   return ret;
+}
+
+static std::string number2string(long long n) {
+  static char buf[64];
+  sprintf(buf, "%lld", n);
+  return buf;
 }
 
 static int string2non_negative(std::string s) {
