@@ -4,7 +4,8 @@
 (export char-in num-in with-checker with-checker*
         guard <= > == or and
         watermark watermark*
-        ->string ->string!)
+        ->string ->string!
+        $f)
 (import (csm)
         (except (chezscheme) guard <= > or and))
 (export (import (csm)))
@@ -85,6 +86,7 @@
     [(_ e ...)
      (begin (set! e (->string e)) ...)]))
 
+(define-syntax $f (identifier-syntax format))
 )
 
 ;(display "macros loaded\n")

@@ -137,12 +137,11 @@ static bool privilege_checker(std::string s) {
         (register-converter/p name converter-name)
         (join "\n"
           (list
-            (str+ "using " type " = cstr<" (->string len) ">;")
-            (str+ "static " type " " converter-name "(std::string s) {\n"
-                  "assert(" (get-checker/p (->string 'n)) "(s));\n"
-                  "return string2cstr<" (->string len)  ">(s);\n"
-                  "}"
-                  ))
+            ($f "using ~a = cstr<~a>;\n" type len)
+            (str+ ($f "static ~a ~a(std::string s) {\n" type converter-name)
+                  ($f "assert(~a(s));\n" (get-checker/p (->string 'n)))
+                  ($f "return string2cstr<~a>(s);\n" len)
+                  "}"))
           ))]))
 
 @(DF username 20)
