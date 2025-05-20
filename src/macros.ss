@@ -1,16 +1,21 @@
 (load "csm/csm.ss")
 
 (library (macros)
-(export char-in with-checker with-checker*
+(export char-in num-in with-checker with-checker*
         guard <= > == or and
         watermark watermark*
-        ->string)
+        ->string ->string!)
 (import (csm)
         (except (chezscheme) guard <= > or and))
 (export (import (csm)))
 
 (define (char-in x y)
   (forsome y (lambda (z) ((op "==") x z))))
+
+(define (num-in x l r)
+  (->string! x l r)
+  (and (<= l x)
+       (<= x r)))
 
 (define-syntax with-checker
   (lambda (x)
@@ -75,7 +80,11 @@
     [(number? s) (number->string s)]
     [else (error '->string (format "unrecognized type of ~s" s))]))
 
-)
+(define-syntax ->string!
+  (syntax-rules ()
+    [(_ e ...)
+     (begin (set! e (->string e)) ...)]))
 
+)
 
 ;(display "macros loaded\n")

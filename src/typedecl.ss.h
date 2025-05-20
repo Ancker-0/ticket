@@ -18,6 +18,7 @@
        (printf "hash:\n~s\n~s\n" ks vs)))
 
    (define (register-converter/p name value)
+     (->string! name value)
      (when (not (string? name)) (error 'converter "not a string"))
      (hashtable-set! string-converter-table name value))
 
@@ -102,11 +103,28 @@ static bool realname_checker(std::string s) {
  #t)
 
 @(register-checker privilege "privilege_checker")
-@(register-converter/p "privilege" "string2non_negative")
 static bool privilege_checker(std::string s) {
   int x = string2non_negative(s);
   return 0 <= x and x <= 10;
 }
+
+@(register-checker trainID
+   (λ ("std::string s")
+     (return
+       (with-checker* "s"
+         (<= len "20")
+         (char-range A-Z a-z 0-9 "_")
+         (char-in "s[0]" (string-literal (str+ A-Z a-z))))))
+   #t)
+
+@(register-checker seatNum
+   (λ ("std::string s")
+     (return
+       (with-checker* "s"
+         (<= len "6")
+         (char-range 0-9)
+         (num-in "string2non_negative(s)" 0 100000))))
+   #t)
 
 // #define DF(n, len) using n##_t = cstr<len>;
 @(define-syntax DF
@@ -131,8 +149,11 @@ static bool privilege_checker(std::string s) {
 @(DF password 30)
 @(DF realname (* 4 5))
 @(DF mail 30)
+@(DF trainID 20)
+@(register-converter/p "privilege" "string2non_negative")
 using privilege_t = int;
-
+@(register-converter/p "stationNum" "string2non_negative")
+using stationNum = int;
 
 struct user_profile {
   username_t username;
@@ -141,17 +162,17 @@ struct user_profile {
   mail_t mail;
   privilege_t privilege;
   user_profile() = default;
+  @(define (init/p field type var)
+     (->string! field type var)
+     (str+
+      "assert(" (get-checker/p type) "(" var "));\n"
+      field " = " (get-converter/p type) "(" var ");"))
   user_profile(std::string s0, std::string s1, std::string s2, std::string s3, std::string s4) {
-    assert(@(get-checker username)(s0));
-    assert(@(get-checker password)(s1));
-    assert(@(get-checker realname)(s2));
-    assert(@(get-checker mail)(s3));
-    assert(@(get-checker privilege)(s4));
-    username = @(get-converter username)(s0);
-    password = @(get-converter password)(s1);
-    realname = @(get-converter realname)(s2);
-    mail = @(get-converter mail)(s3);
-    privilege = @(get-converter privilege)(s4);
+    @(init/p 'username 'username 's0)
+    @(init/p 'password 'password 's1)
+    @(init/p 'realname 'realname 's2)
+    @(init/p 'mail 'mail 's3)
+    @(init/p 'privilege 'privilege 's4)
   }
   explicit operator std::string() {
     return (std::string)username + " " + (std::string)realname + " " + (std::string)mail + " " + number2string(privilege);
