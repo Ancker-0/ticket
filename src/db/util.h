@@ -1,6 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include "../vector.h"
 #include "error.h"
 
 #include <cstring>
@@ -16,6 +17,8 @@ public:
       arr[i] = o.arr[i];
     return *this;
   }
+  T &operator[](size_t idx) { return arr[idx]; }
+  const T &operator[](size_t idx) const { return arr[idx]; }
   T *data() { return arr; }
   const T *data() const { return arr; }
 };
@@ -101,6 +104,19 @@ static int string2non_negative(std::string s) {
   }
   Massert(-2147483648 <= ret and ret <= 2147483647, "too large");
   return (int)ret;
+}
+
+static sjtu::vector<std::string> split(std::string s) {
+  sjtu::vector<std::string> ret;
+  std::string buf;
+  for (char c : s)
+    if (c == '|')
+      ret.push_back(buf), buf = "";
+    else {
+      assert(c != ' ');
+      buf += c;
+    }
+  return ret;
 }
 
 #endif //UTIL_H

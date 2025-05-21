@@ -1,3 +1,5 @@
+#!chezscheme
+
 (load "csm/csm.ss")
 
 (library (macros)
@@ -5,7 +7,9 @@
         guard <= > == or and
         watermark watermark*
         ->string ->string!
-        $f)
+        $f $lit
+        utf8-hans-len-range
+        list/range)
 (import (csm)
         (except (chezscheme) guard <= > or and))
 (export (import (csm)))
@@ -87,6 +91,19 @@
      (begin (set! e (->string e)) ...)]))
 
 (define-syntax $f (identifier-syntax format))
+(define-syntax $lit (identifier-syntax string-literal))
+
+(define (utf8-hans-len-range var l r) "true")
+
+(define (list/range l r)
+  (if (>= l r)
+    '()
+    (let loop ((lst '())
+               (p (- r 1)))
+      (if (< p l)
+        lst
+        (loop (cons p lst) (1- p))))))
+
 )
 
 ;(display "macros loaded\n")

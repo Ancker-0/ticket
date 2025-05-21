@@ -2,6 +2,8 @@
 #define SJTU_VECTOR_HPP
 
 #include <climits>
+#include <cassert>
+#include <memory>
 #include <cstring>
 #include <cstddef>
 
