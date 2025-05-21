@@ -102,6 +102,7 @@
 }
 
 @(register-handler/s add_train inmspxtody) {
+  train_t train(gi, gn, gs, gm, gp, gx, gt, go, gd, gy);
   return "sorry, not implemented!";
 }
 
