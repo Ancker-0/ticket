@@ -18,6 +18,9 @@ public:
   std::string msg;
 };
 
+class InvalidData : Error {
+};
+
 inline void Eassert(bool condition, std::string msg = "") {
   if (not condition)
     throw Error(msg);

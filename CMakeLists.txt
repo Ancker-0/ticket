@@ -7,4 +7,6 @@ add_executable(ticket src/main.cpp
                       src/cmd.h src/typedecl.h src/vector.h
                       src/db/config.h src/db/database.h src/db/database_more.h src/db/fs.cpp src/db/fs.h src/db/util.h src/db/error.h
         src/account.cpp
-        src/account.h)
+        src/account.h
+        src/trainer.cpp
+        src/trainer.h)

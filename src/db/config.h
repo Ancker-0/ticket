@@ -6,6 +6,6 @@
 #define WEAK_TIME 1
 
 #define TESTFILE 0
-#define FILENAME "../data/basic/testcase4.in"
+#define FILENAME "../testcases/2.in"
 
 #endif

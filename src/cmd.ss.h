@@ -39,6 +39,7 @@
 #include "typedecl.h"
 #include "vector.h"
 #include "account.h"
+#include "trainer.h"
 // #include <vector>
 // namespace sjtu {
 //   template <typename T> using vector = std::vector<T>;
@@ -102,22 +103,42 @@
 }
 
 @(register-handler/s add_train inmspxtody) {
-  return "sorry, not implemented!";
+  train_t train(gi, gn, gs, gm, gp, gx, gt, go, gd, gy);
+  return trainer.add_train(train) ? "0" : "-1";
 }
 
 @(register-handler/s delete_train i) {
-  return "sorry, not implemented!";
+  return trainer.delete_train(@(get-converter/p 'trainID)(gi)) ? "0" : "-1";
 }
 
 @(register-handler/s release_train i) {
-  return "sorry, not implemented!";
+  return trainer.release_train(@(get-converter/p 'trainID)(gi)) ? "0" : "-1";
 }
 
 @(register-handler/s query_train id) {
-  return "sorry, not implemented!";
+  try {
+    train_t train = trainer.query_train(@(get-converter/p 'trainID)(gi));
+    std::string res;
+    res += std::string(train.trainID) + " " + train.train_type + "\n";
+    price_t price = 0;
+    date_t date = @(get-converter/p 'date)(gd);
+    for (int i = 0; i < train.stationNum; ++i) {
+      if (i)
+        res += "\n";
+      price += train.prices[i];
+      // TODO: deal with date/time
+      res += std::string(train.stationNames[i]) + " " + std::string(i == 0 ? "x" : "x" /* arriving time */) + " -> " + std::string(i + 1 == train.stationNum ? "x" : "x" /* leaving time */) + " " + number2string(price) + " " + ((i + 1 == train.stationNum) ? number2string(train.seat[date][i]) : "x");
+      return res;
+    }
+  } catch (const Error &) {
+    return "-1";
+  }
+  return assert(false), "42";
 }
 
 @(register-handler/s query_ticket std p) {
+  assert(gp == "" or gp == "time" or gp == "cost");
+  sjtu::vector<Trainer::qry_ticket_t> ret = trainer.query_ticket(@(convert-to/p 'date 'gd), @(convert-to/p 'stationName 'gs), @(convert-to/p 'stationName 'gt), gp == "cost");
   return "sorry, not implemented!";
 }
 

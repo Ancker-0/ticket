@@ -116,6 +116,7 @@ static sjtu::vector<std::string> split(std::string s) {
       assert(c != ' ');
       buf += c;
     }
+  ret.push_back(buf);
   return ret;
 }
 

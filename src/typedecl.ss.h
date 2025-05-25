@@ -42,6 +42,7 @@
      (hashtable-ref string-checker-table name '*))
 
    (define (get-converter/p name)
+     (->string! name)
      (when (not (string? name)) (error 'get-checker (format "~s not a string" name)))
      (hashtable-ref string-converter-table name '*))
 
@@ -52,6 +53,10 @@
    (define-syntax get-converter
      (syntax-rules ()
        [(_ symb) (get-converter/p (symbol->string 'symb))]))
+
+   (define (convert-to/p name val)
+     (->string! name val)
+     (format "~a(~a)" (get-converter/p name) val))
 
    (define-syntax convert-to
      (syntax-rules ()
@@ -190,12 +195,14 @@ using duration_t = int;
 using seatNum_t = int;
 using date_t = __int8_t;
 using train_type_t = char;
+using time_and_date_t = std::pair<date_t, Time_t>;
 
 @(register-checker/p 'train_type
    (λ ("std::string s")
-     (with-checker "s"
-       (== len "1")
-       (char-range ($lit A-Z)))))
+     (return
+       (with-checker "s"
+         (== len "1")
+         (char-range ($lit A-Z))))))
 @(register-converter/p 'train_type
     (λ ("std::string s")
       (return "s[0]")))
@@ -258,6 +265,7 @@ struct user_profile {
 };
 
 struct train_t {
+  // original field
   trainID_t trainID;
   stationNum_t stationNum;
   sjtu::array<stationName_t, 100> stationNames;
@@ -269,13 +277,18 @@ struct train_t {
   date_t saleDate[2];
   train_type_t train_type;
 
+  // additional field
+  bool released;
+  sjtu::array<sjtu::array<int, 100>, 92> seat;
+  train_t() = default;
+
   @(define (init/arr-p field type var bound)
      (define tmp (genname "tmpvar"))
      (->string! field type var)
      (str+
        (format "auto ~a = split(~a);\n" tmp var)
        ; (format "assert(~a.size() <= ~a);\n" tmp bound)
-       (format "assert(~a.size() == (~a));\n" tmp bound)
+       (format "Eassert(~a.size() == (~a));\n" tmp bound)
        (format "for (size_t i = 0; i < ~a.size(); ++i) {\n" tmp)
        (format "  ~a[i] = (~a(~a[i]));\n" field (get-converter/p type) tmp)
        "}"))
@@ -285,12 +298,17 @@ struct train_t {
     @(init/arr-p 'stationNames 'stationName 's2 "stationNum")
     @(init/p 'seatNum 'seatNum 's3)
     @(init/arr-p 'prices 'price 's4 "stationNum - 1")
-    @(init/p 'startTime 'date 's5)
+    @(init/p 'startTime 'Time 's5)
     @(init/arr-p 'travelTimes 'duration 's6 "stationNum - 1")
     @(init/arr-p 'stopoverTimes 'duration 's7 "stationNum - 2")
     @(init/arr-p 'saleDate 'date 's8 2)
+    @(init/p 'train_type 'train_type 's9)
+
+    released = false;
   }
 };
+
+inline static bool date_range(date_t x, date_t s, date_t t) { return x <= s and s <= t; }
 
 /*
 int main() {

@@ -74,6 +74,7 @@ public:
   Bfsp &bf;
 
   std::vector<Val> getAll();
+  void forEach(std::function<void(const Val &)> func);
   void printKeys();
 
 private:
@@ -416,6 +417,24 @@ std::vector<Val> Database<Key, Val, KeyCmp, KeyEq, header_id>::getAll() {
   };
   dfs(NWITH_TR(bf, header.root, Node, tmp, tmp), 0);
   return ret;
+}
+
+template<class Key, class Val, auto KeyCmp, auto KeyEq, int header_id>
+void Database<Key, Val, KeyCmp, KeyEq, header_id>::forEach(std::function<void(const Val &)> func) {
+  std::function<void(const Node &, int)> dfs = [&](const Node &n, int dep) {
+    if (dep == header.depth) {
+      for (int i = 0; i < n.size; ++i)
+        if (n.chd[i] != nullpos) {
+          Val tmp{};
+          bf.getT(n.chd[i], tmp);
+          func(tmp);
+        }
+      return;
+    } else
+      for (int i = 0; i <= n.size; ++i)
+        dfs(NWITH_TR(bf, n.chd[i], Node, tmp, tmp), dep + 1);
+  };
+  dfs(NWITH_TR(bf, header.root, Node, tmp, tmp), 0);
 }
 
 #undef NWITH_T
