@@ -201,7 +201,7 @@ static std::string date_printer(date_t d) {
   int mm = d < 30 ? 6 : d < 61 ? 7 : d < 92 ? 8 : -1;
   int dd = 1 + (d < 30 ? d : d < 61 ? d - 30 : d < 92 ? d - 61 : -1);
   static char buf[20];
-  sprintf(buf, "%2-%2", mm, dd);
+  sprintf(buf, "%02d-%02d", mm, dd);
   return std::string(buf);
 }
 
@@ -209,7 +209,7 @@ static std::string time_printer(Time_t d) {
   int hh = d / 60;
   int mm = d % 60;
   static char buf[20];
-  sprintf(buf, "%2:%2", hh, mm);
+  sprintf(buf, "%02d:%02d", hh, mm);
   return std::string(buf);
 }
 
@@ -339,7 +339,7 @@ struct train_t {
   }
 };
 
-inline static bool date_range(date_t x, date_t s, date_t t) { return x <= s and s <= t; }
+inline static bool date_range(date_t x, date_t s, date_t t) { return s <= x and x <= t; }
 
 /*
 int main() {
