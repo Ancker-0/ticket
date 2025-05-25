@@ -197,6 +197,37 @@ using date_t = __int8_t;
 using train_type_t = char;
 using time_and_date_t = std::pair<date_t, Time_t>;
 
+static std::string date_printer(date_t d) {
+  int mm = d < 30 ? 6 : d < 61 ? 7 : d < 92 ? 8 : -1;
+  int dd = 1 + (d < 30 ? d : d < 61 ? d - 30 : d < 92 ? d - 61 : -1);
+  static char buf[20];
+  sprintf(buf, "%2-%2", mm, dd);
+  return std::string(buf);
+}
+
+static std::string time_printer(Time_t d) {
+  int hh = d / 60;
+  int mm = d % 60;
+  static char buf[20];
+  sprintf(buf, "%2:%2", hh, mm);
+  return std::string(buf);
+}
+
+static std::string time_and_date_printer(const time_and_date_t &x) {
+  return date_printer(x.first) + " " + time_printer(x.second);
+}
+
+inline static int time_and_date_diff(const time_and_date_t &s, const time_and_date_t &t) {
+  return (t.first - s.first) * 1440 + (t.second - s.second);
+}
+
+static time_and_date_t time_and_date_advance(time_and_date_t t, duration_t delta) {
+  int min = t.second + delta;
+  t.second = min % 1440;
+  t.first += min / 1440;
+  return t;
+}
+
 @(register-checker/p 'train_type
    (λ ("std::string s")
      (return
@@ -279,7 +310,7 @@ struct train_t {
 
   // additional field
   bool released;
-  sjtu::array<sjtu::array<int, 100>, 92> seat;
+  sjtu::array<sjtu::array<int, 99>, 92> seat;
   train_t() = default;
 
   @(define (init/arr-p field type var bound)

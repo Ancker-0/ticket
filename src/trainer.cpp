@@ -54,9 +54,34 @@ sjtu::vector<Trainer::qry_ticket_t> Trainer::query_ticket(date_t date, stationNa
     }
     if (ps == -1 or pt == -1 or ps > pt)
       return;
+
+    time_and_date_t leaving_time = {date, train.startTime};
+    for (int i = 0; i < ps; ++i) {
+      leaving_time = time_and_date_advance(leaving_time, train.travelTimes[i]);
+      if (i)
+        leaving_time = time_and_date_advance(leaving_time, train.stopoverTimes[i - 1]);
+    }
+    time_and_date_t arriving_time = leaving_time;
+    for (int i = ps; i < pt; ++i) {
+      arriving_time = time_and_date_advance(arriving_time, train.travelTimes[i]);
+      if (i)
+        arriving_time = time_and_date_advance(arriving_time, train.stopoverTimes[i]);
+    }
+
     assert(ps != pt);
-    ret.push_back({train.trainID, {0, 0}, {0, 0}, 0, 0});  // TODO: fill the numbers
+    int price = 0, seat = 0;
+    for (int i = ps; i < pt; ++i) {
+      price += train.prices[i];
+      seat = std::max(seat, train.seat[date][i]);
+    }
+    ret.push_back((Trainer::qry_ticket_t){train.trainID, leaving_time, arriving_time, price, train.seatNum - seat});  // TODO: fill the numbers
   };
   db.forEach(asker);
+  if (ret.empty())
+    return ret;
+  if (sort_by_cost)
+    sjtu::sort(&ret[0], &ret[0] + ret.size(), [&](const auto &u, const auto &v) { return u.price < v.price; });
+  else
+    sjtu::sort(&ret[0], &ret[0] + ret.size(), [&](const auto &u, const auto &v) { return time_and_date_diff(u.leaving_time, u.arriving_time) < time_and_date_diff(v.leaving_time, v.arriving_time); });
   return ret;
 }

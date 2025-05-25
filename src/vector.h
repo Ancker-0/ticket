@@ -389,6 +389,29 @@ public:
 	}
 };
 
+template <typename T, typename F>
+void sort(T *l, T *r, const F &cmp) {
+  if (l + 1 >= r)
+    return;
+  int idx = rand() % (r - l);
+  std::swap(*l, *(l + idx));
+  vector<T> left, right;
+  for (T *p = l + 1; p < r; ++p)
+    if (cmp(*l, *p))
+      right.push_back(*p);
+    else
+      left.push_back(*p);
+  std::swap(*l, *(l + left.size()));
+  T *p = l;
+  for (int i = 0; i < (int)left.size(); ++i)
+    *(p++) = left[i];
+  ++p;
+  for (int i = 0; i < (int)right.size(); ++i)
+    *(p++) = right[i];
+  assert(p == r);
+  sort(l, l + left.size(), cmp);
+  sort(l + left.size() + 1, r, cmp);
+}
 
 }
 

@@ -4,7 +4,6 @@ int main() {
 #if TESTFILE
   freopen(FILENAME, "r", stdin);
 #endif
-  std::cout << "!" << sizeof(train_t) << "\n";
   std::string tmp;
   while (std::getline(std::cin, tmp)) {
     if (tmp == "")

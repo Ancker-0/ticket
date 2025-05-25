@@ -6,6 +6,8 @@
 
 #include <cstring>
 
+const int INF = 0x3F3F3F3F;
+
 namespace sjtu {
 template <typename T, size_t size>
 class array {

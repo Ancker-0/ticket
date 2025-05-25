@@ -138,8 +138,15 @@
 
 @(register-handler/s query_ticket std p) {
   assert(gp == "" or gp == "time" or gp == "cost");
-  sjtu::vector<Trainer::qry_ticket_t> ret = trainer.query_ticket(@(convert-to/p 'date 'gd), @(convert-to/p 'stationName 'gs), @(convert-to/p 'stationName 'gt), gp == "cost");
-  return "sorry, not implemented!";
+  sjtu::vector<Trainer::qry_ticket_t> vec = trainer.query_ticket(@(convert-to/p 'date 'gd), @(convert-to/p 'stationName 'gs), @(convert-to/p 'stationName 'gt), gp == "cost");
+  std::string ret;
+  ret += number2string(vec.size()) + '\n';
+  for (int i = 0; i < (int)vec.size(); ++i) {
+    if (i)
+      ret += '\n';
+    ret += std::string(vec[i].trainID) + " " + gs + " " + time_and_date_printer(vec[i].leaving_time) + " -> " + gt + " " + time_and_date_printer(vec[i].arriving_time) + " " + number2string(vec[i].price) + " " + number2string(vec[i].seat);
+  }
+  return ret;
 }
 
 @(register-handler/s query_transfer std p) {
