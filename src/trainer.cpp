@@ -86,6 +86,7 @@ sjtu::vector<Trainer::qry_ticket_t> Trainer::query_ticket(date_t date, stationNa
       price += train.prices[i];
       seat = std::max(seat, train.seat[date][i]);
     }
+    assert(train.seatNum >= seat);
     ret.push_back((Trainer::qry_ticket_t){train.trainID, leaving_time, arriving_time, price, train.seatNum - seat});  // TODO: fill the numbers
   };
   db.forEach(asker);

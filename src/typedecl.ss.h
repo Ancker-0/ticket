@@ -261,9 +261,9 @@ static date_t date_converter(std::string s) {
       return invalid_date;
   date_t mm = (s[0] - '0') * 10 + s[1] - '0';
   date_t dd = (s[3] - '0') * 10 + s[4] - '0';
-  if (not(@or("mm == 6 and dd <= 30"
-              "mm == 7 and dd <= 31"
-              "mm == 8 and dd <= 31")))
+  if (not(@(or "mm == 6 and dd <= 30"
+               "mm == 7 and dd <= 31"
+               "mm == 8 and dd <= 31")))
     return invalid_date;
   return dd - 1 + (mm >= 7) * 30 + (mm >= 8) * 31;
 }
@@ -343,6 +343,7 @@ struct train_t {
     @(init/arr-p 'saleDate 'date 's8 2)
     @(init/p 'train_type 'train_type 's9)
 
+    seat = decltype(seat)();
     released = false;
     queue = fs_vector::Head{};
     queue_head = 0;
@@ -361,8 +362,8 @@ struct train_t {
     assert(~p);
     for (int i = 0; i < p; ++i) {
       ret = time_and_date_advance(ret, travelTimes[i]);
-      if (i > 0 and i + 1 < p)
-        ret = time_and_date_advance(ret, stopoverTimes[i]);
+      if (i > 0 and i < p)
+        ret = time_and_date_advance(ret, stopoverTimes[i - 1]);
     }
     return ret;
   }

@@ -15,6 +15,8 @@ struct invoice_t {
   seatNum_t num;
   int price;
 
+  stationName_t from, to;
+  time_and_date_t leaving_time, arriving_time;
   int invoice_id;
 };
 
@@ -37,6 +39,7 @@ public:
   user_profile query_profile(username_t cur, username_t user);
   user_profile modify_profile(username_t cur, username_t user, std::string gp, std::string gn, std::string gm, std::string gg);
   std::pair<int, int> buy_ticket(username_t user, trainID_t trainID, date_t date, stationName_t start, stationName_t end, seatNum_t n, bool queue);
+  sjtu::vector<invoice_t> query_order(username_t user);
   static Account &getInstance() {
     static Account instance;
     return instance;

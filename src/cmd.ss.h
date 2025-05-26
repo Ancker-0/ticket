@@ -121,15 +121,23 @@
     std::string res;
     res += std::string(train.trainID) + " " + train.train_type + "\n";
     price_t price = 0;
+    if (!@(get-checker/p "date")(gd))
+      return "-1";
     date_t date = @(get-converter/p 'date)(gd);
+    if (!date_range(date, train.saleDate[0], train.saleDate[1]))
+      return "-1";
     for (int i = 0; i < train.stationNum; ++i) {
-      if (i)
+      if (i) {
         res += "\n";
-      price += train.prices[i];
-      // TODO: deal with date/time
-      res += std::string(train.stationNames[i]) + " " + std::string(i == 0 ? "x" : "x" /* arriving time */) + " -> " + std::string(i + 1 == train.stationNum ? "x" : "x" /* leaving time */) + " " + number2string(price) + " " + ((i + 1 == train.stationNum) ? number2string(train.seat[date][i]) : "x");
-      return res;
+        price += train.prices[i - 1];
+      }
+      // TODO: improve time calculation
+      auto tmp1 = train.arrive_time(train.stationNames[i]);
+      auto tmp2 = train.leaving_time(train.stationNames[i]);
+      tmp1.first += date; tmp2.first += date;
+      res += std::string(train.stationNames[i]) + " " + std::string(i == 0 ? "xx-xx xx:xx" : time_and_date_printer(tmp1) /* arriving time */) + " -> " + std::string(i + 1 == train.stationNum ? "xx-xx xx:xx" : time_and_date_printer(tmp2) /* leaving time */) + " " + number2string(price) + " " + ((i + 1 < train.stationNum) ? number2string(train.seatNum - train.seat[date][i]) : "x");
     }
+    return res;
   } catch (const Error &) {
     return "-1";
   }
@@ -140,10 +148,9 @@
   assert(gp == "" or gp == "time" or gp == "cost");
   sjtu::vector<Trainer::qry_ticket_t> vec = trainer.query_ticket(@(convert-to/p 'date 'gd), @(convert-to/p 'stationName 'gs), @(convert-to/p 'stationName 'gt), gp == "cost");
   std::string ret;
-  ret += number2string(vec.size()) + '\n';
+  ret += number2string(vec.size());
   for (int i = 0; i < (int)vec.size(); ++i) {
-    if (i)
-      ret += '\n';
+    ret += '\n';
     ret += std::string(vec[i].trainID) + " " + gs + " " + time_and_date_printer(vec[i].leaving_time) + " -> " + gt + " " + time_and_date_printer(vec[i].arriving_time) + " " + number2string(vec[i].price) + " " + number2string(vec[i].seat);
   }
   return ret;
@@ -165,7 +172,19 @@
 }
 
 @(register-handler/s query_order u) {
-  return "sorry, not implemented!";
+  try {
+    sjtu::vector<invoice_t> vec = accounter.query_order(@(convert-to/p 'username 'gu));
+    std::string ret = number2string(vec.size());
+    for (int i = (int)vec.size() - 1; i >= 0; --i) {
+      ret += '\n';
+      ret += std::string(vec[i].status == 1 ? "[success]" : vec[i].status == 0 ? "[pending]" : vec[i].status == -1 ? "[refunded]" : "UNKNOWN") + " "
+             + std::string(vec[i].trainID) + " " + std::string(vec[i].from) + " " + time_and_date_printer(vec[i].leaving_time) + " -> " + std::string(vec[i].to) + " " + time_and_date_printer(vec[i].arriving_time) + " " + number2string(vec[i].price) + " " + number2string(vec[i].num);
+    }
+    return ret;
+  } catch (const Error &) {
+    return "-1";
+  }
+  return assert(false), "42";
 }
 
 @(register-handler/s refund_ticket u n) {

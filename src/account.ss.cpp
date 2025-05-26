@@ -27,8 +27,10 @@ std::pair<int, int> Account::buy_ticket(username_t user, trainID_t trainID, date
   if (ps == -1 or pt == -1 or ps >= pt)
     return fail;
   seatNum_t seat = 0;
-  time_and_date_t arr_time = train.leaving_time(start);
-  date_t realdate = date - arr_time.first;
+  time_and_date_t leaving_time = train.leaving_time(start), arriving_time = train.arrive_time(end);
+  date_t realdate = date - leaving_time.first;
+  leaving_time.first += realdate;
+  arriving_time.first += realdate;
   if (!date_range(realdate, train.saleDate[0], train.saleDate[1]))
     return fail;
   int price = 0;
@@ -41,13 +43,19 @@ std::pair<int, int> Account::buy_ticket(username_t user, trainID_t trainID, date
     for (int i = ps; i < pt; ++i)
       train.seat[realdate][i] += n;
     trainer.update_train(train);
-    create_invoice(user, invoice_t{train.trainID, user, 1, realdate, n, price * n});
+    create_invoice(user, invoice_t{train.trainID, user, 1, realdate, n, price, start, end, leaving_time, arriving_time});
     return {1, price * n};
   } else if (queue) {
-    trainer.pend(create_invoice(user, invoice_t{train.trainID, user, 0, realdate, n, price * n}));
+    trainer.pend(create_invoice(user, invoice_t{train.trainID, user, 0, realdate, n, price, start, end, leaving_time, arriving_time}));
     return {0, -1};
   } else
     return {-1, -1};
+}
+
+sjtu::vector<invoice_t> Account::query_order(username_t user) {
+  if (!logged_in(user))
+    throw Error("not logged in");
+  return vec_ass.getAll<invoice_t>(db.get(user).invoices);
 }
 
 invoice_t Account::create_invoice(username_t user, invoice_t invoice) {

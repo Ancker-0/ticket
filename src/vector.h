@@ -227,6 +227,10 @@ public:
 		/*TODO*/
 
 	};
+
+  void resize(int nsz) { extend(nsz); }
+  T *data() { return reinterpret_cast<T*>(p); }
+
 	/**
 	 * TODO Constructs
 	 * At least two: default constructor, copy constructor
