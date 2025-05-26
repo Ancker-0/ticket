@@ -229,6 +229,10 @@ static time_and_date_t time_and_date_advance(time_and_date_t t, duration_t delta
   return t;
 }
 
+static bool time_and_date_less(time_and_date_t x, time_and_date_t y) {
+  return x.first == y.first ? x.second < y.second : x.first < y.first;
+}
+
 @(register-checker/p 'train_type
    (λ ("std::string s")
      (return

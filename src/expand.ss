@@ -12,7 +12,8 @@
   '((("macro-test.ss.cpp" . "macro-test.cpp"))
     (("typedecl.ss.h" . "typedecl.h")
      ("cmd.ss.h" . "cmd.h")
-     ("account.ss.cpp" . "account.cpp"))))
+     ("account.ss.cpp" . "account.cpp")
+     ("trainer.ss.cpp" . "trainer.cpp"))))
 
 (define cmd (command-line-arguments))
 

@@ -56,6 +56,7 @@
 
 (define <= (op "<="))
 (define > (op ">"))
+; (define < (op "<"))
 (define == (op "=="))
 (define or (ops "||"))
 (define and (ops "&&"))

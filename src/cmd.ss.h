@@ -157,7 +157,16 @@
 }
 
 @(register-handler/s query_transfer std p) {
-  return "sorry, not implemented!";
+  sjtu::vector<Trainer::qry_ticket_t> vec = trainer.query_transfer(@(convert-to date gd), @(convert-to stationName gs), @(convert-to stationName gt), gp == "cost");
+  if (vec.empty())
+    return "0";
+  std::string ret;
+  for (int i = 0; i < (int)vec.size(); ++i) {
+    if (i)
+      ret += '\n';
+    ret += std::string(vec[i].trainID) + " " + gs + " " + time_and_date_printer(vec[i].leaving_time) + " -> " + gt + " " + time_and_date_printer(vec[i].arriving_time) + " " + number2string(vec[i].price) + " " + number2string(vec[i].seat);
+  }
+  return ret;
 }
 
 @(register-handler/s buy_ticket uidnft q) {
@@ -192,6 +201,7 @@
 }
 
 @(register-handler/s clean) {
+  assert(false);
   return "sorry, not implemented!";
 }
 

@@ -24,13 +24,13 @@ class Account {
   Bfsp bf;
   fs_vector vec_ass;
   Account();
-  sjtu::vector<username_t> login_list;
 
   bool logged_in(username_t user);
   bool exists(username_t user);
   invoice_t create_invoice(username_t user, invoice_t invoice);
 
 public:
+  sjtu::vector<username_t> login_list;
   Database<username_t, user_profile> db;
 
   bool add_user(username_t cur, user_profile profile);

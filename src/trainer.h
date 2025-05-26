@@ -34,7 +34,8 @@ public:
     time_and_date_t leaving_time, arriving_time;
     int price, seat;
   };
-  sjtu::vector<qry_ticket_t> query_ticket(date_t date, stationName_t start, stationName_t end, bool sort_by_cost);
+  sjtu::vector<qry_ticket_t> query_ticket(date_t date, stationName_t start, stationName_t end, bool sort_by_cost, Time_t after = invalid_time);
+  sjtu::vector<qry_ticket_t> query_transfer(date_t date, stationName_t start, stationName_t end, bool sort_by_cost);
 };
 
 static Trainer &trainer = Trainer::getInstance();

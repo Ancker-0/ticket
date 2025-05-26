@@ -9,8 +9,10 @@ int main() {
     if (tmp == "")
       continue;
     std::cout << dispatch(tmp) << std::endl;
-    if (tmp == "exit")
-      return 0;
+    if (tmp.find("exit") != tmp.npos) {
+      accounter.login_list.clear();
+      errf("bye\n");
+    }
   }
   return 0;
 }

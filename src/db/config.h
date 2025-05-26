@@ -1,11 +1,11 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define RESET_DB 1
+#define RESET_DB 0
 #define NO_ERRF 0
 #define WEAK_TIME 1
 
 #define TESTFILE 0
-#define FILENAME "../testcases/2.in"
+#define FILENAME "../testcases/5.in"
 
 #endif
