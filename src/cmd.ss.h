@@ -188,7 +188,7 @@
 }
 
 @(register-handler/s refund_ticket u n) {
-  return "sorry, not implemented!";
+  return accounter.refund(@(convert-to/p 'username 'gu), gn == "" ? 1 : string2non_negative(gn)) ? "0" : "-1";
 }
 
 @(register-handler/s clean) {

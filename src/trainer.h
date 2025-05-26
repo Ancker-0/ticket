@@ -22,6 +22,7 @@ public:
   train_t query_train(trainID_t ID);
   void update_train(const train_t &train);
   void pend(const invoice_t &invoice);
+  void refund_ticket(trainID_t ID, date_t date, stationName_t from, stationName_t to, seatNum_t num);
 
   static Trainer &getInstance() {
     static Trainer instance;

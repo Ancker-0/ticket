@@ -230,6 +230,7 @@ public:
 
   void resize(int nsz) { extend(nsz); }
   T *data() { return reinterpret_cast<T*>(p); }
+  const T *data() const { return reinterpret_cast<T*>(p); }
 
 	/**
 	 * TODO Constructs

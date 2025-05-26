@@ -40,10 +40,13 @@ public:
   user_profile modify_profile(username_t cur, username_t user, std::string gp, std::string gn, std::string gm, std::string gg);
   std::pair<int, int> buy_ticket(username_t user, trainID_t trainID, date_t date, stationName_t start, stationName_t end, seatNum_t n, bool queue);
   sjtu::vector<invoice_t> query_order(username_t user);
+  bool refund(username_t user, int order_id);
+
   static Account &getInstance() {
     static Account instance;
     return instance;
   }
+  invoice_t get_invoice(username_t user, int order_id);
 };
 
 static Account &accounter = Account::getInstance();

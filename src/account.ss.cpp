@@ -15,6 +15,24 @@ bool Account::exists(username_t user) {
   return db.exist(user);
 }
 
+bool Account::refund(username_t user, int order_id) {
+  if (!logged_in(user))
+    return false;
+  user_profile up = db.get(user);
+  sjtu::vector<invoice_t> invs = vec_ass.getAll<invoice_t>(up.invoices);
+  if (order_id > invs.size())
+    return false;
+  order_id = invs.size() - order_id;
+  invoice_t &inv = invs[order_id];
+  if (inv.status == -1)
+    return false;
+  if (inv.status == 1)
+    trainer.refund_ticket(inv.trainID, inv.realdate, inv.from, inv.to, inv.num);
+  inv.status = -1;
+  vec_ass.update(up.invoices, order_id, inv);
+  return true;
+}
+
 std::pair<int, int> Account::buy_ticket(username_t user, trainID_t trainID, date_t date, stationName_t start,
   stationName_t end, seatNum_t n, bool queue) {
   static const std::pair<int, int> fail = {-1, -1};
@@ -143,4 +161,9 @@ user_profile Account::modify_profile(username_t cur, username_t user, std::strin
   }
   db.modify(user, user_p);
   return user_p;
+}
+
+invoice_t Account::get_invoice(username_t user, int order_id) {
+  user_profile up = db.get(user);
+  return vec_ass.get<invoice_t>(up.invoices, order_id);
 }
