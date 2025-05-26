@@ -30,6 +30,7 @@ bool Account::refund(username_t user, int order_id) {
     trainer.refund_ticket(inv.trainID, inv.realdate, inv.from, inv.to, inv.num);
   inv.status = -1;
   vec_ass.update(up.invoices, order_id, inv);
+  db.modify(user, up);
   return true;
 }
 
@@ -156,8 +157,11 @@ user_profile Account::modify_profile(username_t cur, username_t user, std::strin
   @(fill gp password)
   @(fill gn realname)
   @(fill gm mail)
-  if (gg != "" and string2non_negative(gg) < cur_p.privilege) {
-    @(fill gg privilege)
+  if (gg != "") {
+    if (string2non_negative(gg) < cur_p.privilege) {
+      @(fill gg privilege)
+    } else
+      throw Error("access denied");
   }
   db.modify(user, user_p);
   return user_p;
@@ -166,4 +170,10 @@ user_profile Account::modify_profile(username_t cur, username_t user, std::strin
 invoice_t Account::get_invoice(username_t user, int order_id) {
   user_profile up = db.get(user);
   return vec_ass.get<invoice_t>(up.invoices, order_id);
+}
+
+void Account::put_invoice(invoice_t inv) {
+  user_profile up = db.get(inv.username);
+  vec_ass.update<invoice_t>(up.invoices, inv.invoice_id, inv);
+  db.modify(inv.username, up);
 }

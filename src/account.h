@@ -47,6 +47,7 @@ public:
     return instance;
   }
   invoice_t get_invoice(username_t user, int order_id);
+  void put_invoice(invoice_t inv);
 };
 
 static Account &accounter = Account::getInstance();

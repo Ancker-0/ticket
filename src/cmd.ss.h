@@ -157,15 +157,13 @@
 }
 
 @(register-handler/s query_transfer std p) {
-  sjtu::vector<Trainer::qry_ticket_t> vec = trainer.query_transfer(@(convert-to date gd), @(convert-to stationName gs), @(convert-to stationName gt), gp == "cost");
-  if (vec.empty())
+  Trainer::transfer_t vec = trainer.query_transfer(@(convert-to date gd), @(convert-to stationName gs), @(convert-to stationName gt), gp == "cost");
+  if (vec.transferName == "")
     return "0";
   std::string ret;
-  for (int i = 0; i < (int)vec.size(); ++i) {
-    if (i)
-      ret += '\n';
-    ret += std::string(vec[i].trainID) + " " + gs + " " + time_and_date_printer(vec[i].leaving_time) + " -> " + gt + " " + time_and_date_printer(vec[i].arriving_time) + " " + number2string(vec[i].price) + " " + number2string(vec[i].seat);
-  }
+  ret += std::string(vec.q1.trainID) + " " + gs + " " + time_and_date_printer(vec.q1.leaving_time) + " -> " + std::string(vec.transferName) + " " + time_and_date_printer(vec.q1.arriving_time) + " " + number2string(vec.q1.price) + " " + number2string(vec.q1.seat);
+  ret += '\n';
+  ret += std::string(vec.q2.trainID) + " " + std::string(vec.transferName) + " " + time_and_date_printer(vec.q2.leaving_time) + " -> " + gt + " " + time_and_date_printer(vec.q2.arriving_time) + " " + number2string(vec.q2.price) + " " + number2string(vec.q2.seat);
   return ret;
 }
 

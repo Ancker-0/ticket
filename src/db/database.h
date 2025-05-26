@@ -431,7 +431,7 @@ void Database<Key, Val, KeyCmp, KeyEq, header_id>::forEach(std::function<void(co
         }
       return;
     } else
-      for (int i = 0; i <= n.size; ++i)
+      for (int i = 0; i < n.size; ++i)
         dfs(NWITH_TR(bf, n.chd[i], Node, tmp, tmp), dep + 1);
   };
   dfs(NWITH_TR(bf, header.root, Node, tmp, tmp), 0);

@@ -121,11 +121,15 @@ static bool privilege_checker(std::string s) {
 
 @(register-checker trainID
    (λ ("std::string s")
-     (return
-       (with-checker* "s"
-         (<= len "20")
-         (char-range A-Z a-z 0-9 "_")
-         (char-in "s[0]" (string-literal (str+ A-Z a-z))))))
+     (COND
+       [(with-checker* "s"
+          (<= len "20")
+          (char-range A-Z a-z 0-9 "_")
+          (char-in "s[0]" (string-literal (str+ A-Z a-z))))
+        (return "true")]
+       [else
+        "errf(\"Bad trainID %s\\n\", s.data());"
+        (return "true")]))
    #t)
 
 @(register-checker seatNum
@@ -199,8 +203,9 @@ using train_type_t = char;
 using time_and_date_t = std::pair<date_t, Time_t>;
 
 static std::string date_printer(date_t d) {
-  int mm = d < 30 ? 6 : d < 61 ? 7 : d < 92 ? 8 : -1;
-  int dd = 1 + (d < 30 ? d : d < 61 ? d - 30 : d < 92 ? d - 61 : -1);
+  // Why there is a train running up to September...
+  int mm = d < 30 ? 6 : d < 61 ? 7 : d < 92 ? 8 : d < 122 ? 9 : -1;
+  int dd = 1 + (d < 30 ? d : d < 61 ? d - 30 : d < 92 ? d - 61 : d < 122 ? d - 92 : -1);
   static char buf[20];
   sprintf(buf, "%02d-%02d", mm, dd);
   return std::string(buf);
