@@ -43,7 +43,7 @@ sjtu::vector<Trainer::qry_ticket_t> Trainer::query_ticket(date_t date, stationNa
   bool sort_by_cost) {
   sjtu::vector<Trainer::qry_ticket_t> ret;
   auto asker = [&](const train_t &train) {
-    if (!date_range(date, train.saleDate[0], train.saleDate[1]))
+    if (date < train.saleDate[0])
       return;
     int ps = -1, pt = -1;
     for (int i = 0; i < train.stationNum; ++i) {
@@ -58,15 +58,19 @@ sjtu::vector<Trainer::qry_ticket_t> Trainer::query_ticket(date_t date, stationNa
     time_and_date_t leaving_time = {date, train.startTime};
     for (int i = 0; i < ps; ++i) {
       leaving_time = time_and_date_advance(leaving_time, train.travelTimes[i]);
-      if (i)
-        leaving_time = time_and_date_advance(leaving_time, train.stopoverTimes[i - 1]);
+      leaving_time = time_and_date_advance(leaving_time, train.stopoverTimes[i]);
     }
     time_and_date_t arriving_time = leaving_time;
     for (int i = ps; i < pt; ++i) {
       arriving_time = time_and_date_advance(arriving_time, train.travelTimes[i]);
-      if (i)
+      if (i + 1 < pt)
         arriving_time = time_and_date_advance(arriving_time, train.stopoverTimes[i]);
     }
+    int delta_date = leaving_time.first - date;
+    if (!date_range(date - delta_date, train.saleDate[0], train.saleDate[1]))
+      return;
+    leaving_time.first -= delta_date;
+    arriving_time.first -= delta_date;
 
     assert(ps != pt);
     int price = 0, seat = 0;
