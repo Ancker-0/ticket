@@ -154,7 +154,14 @@
 }
 
 @(register-handler/s buy_ticket uidnft q) {
-  return "sorry, not implemented!";
+  auto ret = accounter.buy_ticket(@(convert-to/p 'username 'gu),
+                                  @(convert-to/p 'trainID 'gi),
+                                  @(convert-to/p 'date 'gd),
+                                  @(convert-to/p 'stationName 'gf),
+                                  @(convert-to/p 'stationName 'gt),
+                                  @(convert-to/p 'seatNum 'gn),
+                                  gq == "true");
+  return ret.first == 1 ? number2string(ret.second) : ret.first == 0 ? "queue" : "-1";
 }
 
 @(register-handler/s query_order u) {

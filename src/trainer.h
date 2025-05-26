@@ -1,22 +1,27 @@
 #ifndef TRAINER_H
 #define TRAINER_H
 
+#include "account.h"
 #include "typedecl.h"
 #include "db/fs.h"
 #include "db/database.h"
+#include "db/fs_vector.h"
 #include "vector.h"
 
 class Trainer {
   Bfsp bf;
+  fs_vector vec_ass;
   Trainer();
 
 public:
   Database<trainID_t, train_t> db;
 
-  bool add_train(train_t train);
+  bool add_train(const train_t &train);
   bool delete_train(trainID_t ID);
   bool release_train(trainID_t ID);
   train_t query_train(trainID_t ID);
+  void update_train(const train_t &train);
+  void pend(const invoice_t &invoice);
 
   static Trainer &getInstance() {
     static Trainer instance;

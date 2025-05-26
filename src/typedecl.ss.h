@@ -78,6 +78,7 @@
 #include <cassert>
 
 #include "db/util.h"
+#include "db/fs_vector.h"
 
 @(register-checker username
    (λ ("std::string s")
@@ -282,6 +283,9 @@ struct user_profile {
   realname_t realname;
   mail_t mail;
   privilege_t privilege;
+
+  fs_vector::Head invoices;
+
   user_profile() = default;
   user_profile(std::string s0, std::string s1, std::string s2, std::string s3, std::string s4) {
     @(init/p 'username 'username 's0)
@@ -289,6 +293,7 @@ struct user_profile {
     @(init/p 'realname 'realname 's2)
     @(init/p 'mail 'mail 's3)
     @(init/p 'privilege 'privilege 's4)
+    invoices = fs_vector::Head();
   }
   explicit operator std::string() {
     return (std::string)username + " " + (std::string)realname + " " + (std::string)mail + " " + number2string(privilege);
@@ -311,6 +316,9 @@ struct train_t {
   // additional field
   bool released;
   sjtu::array<sjtu::array<int, 99>, 92> seat;
+  fs_vector::Head queue;
+  int queue_head;
+
   train_t() = default;
 
   @(define (init/arr-p field type var bound)
@@ -336,6 +344,34 @@ struct train_t {
     @(init/p 'train_type 'train_type 's9)
 
     released = false;
+    queue = fs_vector::Head{};
+    queue_head = 0;
+  }
+
+  int get_station_id(stationName_t name) const {
+    for (int i = 0; i < stationNum; ++i)
+      if (stationNames[i] == name)
+        return i;
+    return -1;
+  }
+
+  time_and_date_t arrive_time(stationName_t name) const {
+    time_and_date_t ret = {0, startTime};
+    int p = get_station_id(name);
+    assert(~p);
+    for (int i = 0; i < p; ++i) {
+      ret = time_and_date_advance(ret, travelTimes[i]);
+      if (i > 0 and i + 1 < p)
+        ret = time_and_date_advance(ret, stopoverTimes[i]);
+    }
+    return ret;
+  }
+
+  time_and_date_t leaving_time(stationName_t name) const {
+    int p = get_station_id(name);
+    assert(~p);
+    time_and_date_t ret = arrive_time(name);
+    return p ? time_and_date_advance(ret, stopoverTimes[p - 1]) : ret;
   }
 };
 

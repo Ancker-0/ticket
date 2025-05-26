@@ -9,4 +9,6 @@ add_executable(ticket src/main.cpp
         src/account.cpp
         src/account.h
         src/trainer.cpp
-        src/trainer.h)
+        src/trainer.h
+        src/db/fs_vector.cpp
+        src/db/fs_vector.h)

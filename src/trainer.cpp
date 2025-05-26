@@ -1,9 +1,9 @@
 #include "trainer.h"
 
-Trainer::Trainer(): bf("trainer.db"), db(bf) {
+Trainer::Trainer(): bf("trainer.db"), vec_ass(bf), db(bf) {
 }
 
-bool Trainer::add_train(train_t train) {
+bool Trainer::add_train(const train_t &train) {
   if (db.exist(train.trainID))
     return false;
   db.insert(train.trainID, train);
@@ -38,6 +38,19 @@ train_t Trainer::query_train(trainID_t ID) {
   return train;
 }
 
+void Trainer::update_train(const train_t &train) {
+  Eassert(db.exist(train.trainID), "train does not exist");
+  db.modify(train.trainID, train);
+}
+
+void Trainer::pend(const invoice_t &invoice) {
+  assert(db.exist(invoice.trainID));
+  train_t train = db.get(invoice.trainID);
+  assert(train.released);
+  vec_ass.push_back(train.queue, invoice);
+  update_train(train);
+}
+
 // TODO: optimize with database query
 sjtu::vector<Trainer::qry_ticket_t> Trainer::query_ticket(date_t date, stationName_t start, stationName_t end,
   bool sort_by_cost) {
@@ -45,16 +58,11 @@ sjtu::vector<Trainer::qry_ticket_t> Trainer::query_ticket(date_t date, stationNa
   auto asker = [&](const train_t &train) {
     if (date < train.saleDate[0])
       return;
-    int ps = -1, pt = -1;
-    for (int i = 0; i < train.stationNum; ++i) {
-      if (train.stationNames[i] == start)
-        ps = i;
-      if (train.stationNames[i] == end)
-        pt = i;
-    }
+    int ps = train.get_station_id(start), pt = train.get_station_id(end);
     if (ps == -1 or pt == -1 or ps > pt)
       return;
 
+    // TODO: refactor using "typedecl.h"/arrive_time()
     time_and_date_t leaving_time = {date, train.startTime};
     for (int i = 0; i < ps; ++i) {
       leaving_time = time_and_date_advance(leaving_time, train.travelTimes[i]);
