@@ -7,6 +7,7 @@
 #include "db/database.h"
 #include "db/fs_vector.h"
 #include "vector.h"
+#include "hasher.h"
 
 class Trainer {
   Bfsp bf, bf2;
@@ -14,7 +15,7 @@ class Trainer {
   Trainer();
 
 public:
-  Database<trainID_t, train_t> db;
+  Database<Hasher<trainID_t>, train_t> db;
 
   bool add_train(const train_t &train);
   bool delete_train(trainID_t ID);
