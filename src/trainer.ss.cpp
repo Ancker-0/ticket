@@ -27,6 +27,7 @@ bool Trainer::release_train(trainID_t ID) {
   if (train.released)
     return false;
   train.released = true;
+  transer.register_train(train);
   db.modify(ID, train);
   return true;
 }
@@ -87,8 +88,46 @@ void Trainer::refund_ticket(trainID_t ID, date_t date, stationName_t from, stati
 // TODO: optimize with database query
 sjtu::vector<Trainer::qry_ticket_t> Trainer::query_ticket(date_t date, stationName_t start, stationName_t end,
   bool sort_by_cost, Time_t after) {
-  // return sjtu::vector<Trainer::qry_ticket_t>{};  // TODO: for test ONLY!
+  sjtu::vector<Trans::transfer_t> vec = transer.ask(start, end);
   sjtu::vector<Trainer::qry_ticket_t> ret;
+  for (int i = 0; i < (int)vec.size(); ++i) {
+    date_t realdate = date - vec[i].leav_time.first;
+    if (after == invalid_time) {
+      if (!date_range(realdate, vec[i].saleDate[0], vec[i].saleDate[1]))
+        continue;
+    } else {
+      if (realdate > vec[i].saleDate[1])
+        continue;
+      realdate = std::max(realdate, vec[i].saleDate[0]);
+      if (time_and_date_less({realdate + vec[i].leav_time.first, vec[i].leav_time.second}, {date, after}))
+        ++realdate;
+      if (realdate > vec[i].saleDate[1])
+        continue;
+    }
+
+    train_t train = db.get(vec[i].trainID);
+    if (train.trainID != vec[i].trainID or train.stationNames[vec[i].s] != start or train.stationNames[vec[i].t] != end)
+      continue;
+    int s = vec[i].s, t = vec[i].t;
+    int price = 0;
+    seatNum_t seat = 0;
+    for (int j = s; j < t; ++j) {
+      price += train.prices[j];
+      seat = std::max(seat, train.seat[realdate][j]);
+    }
+
+    vec[i].leav_time.first += realdate;
+    vec[i].arr_time.first += realdate;
+    ret.push_back(qry_ticket_t{
+        vec[i].trainID,
+        vec[i].leav_time,
+        vec[i].arr_time,
+        price, train.seatNum - seat
+        });
+  }
+
+  /*
+  return sjtu::vector<Trainer::qry_ticket_t>{};  // TODO: for test ONLY!
   auto asker = [&](const train_t &train) {
     if (!train.released)
       return;
@@ -129,6 +168,7 @@ sjtu::vector<Trainer::qry_ticket_t> Trainer::query_ticket(date_t date, stationNa
     ret.push_back((Trainer::qry_ticket_t){train.trainID, leaving_time, arriving_time, price, train.seatNum - seat});  // TODO: fill the numbers
   };
   db.forEach(asker);
+  */
   if (ret.empty())
     return ret;
   if (sort_by_cost)

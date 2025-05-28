@@ -40,7 +40,7 @@ std::pair<int, int> Account::buy_ticket(username_t user, trainID_t trainID, date
   if (!logged_in(user))
     return fail;
   train_t train = trainer.query_train(trainID);
-  if (!train.released)
+  if (!train.released or train.seatNum < n)
     return fail;
   int ps = train.get_station_id(start), pt = train.get_station_id(end);
   if (ps == -1 or pt == -1 or ps >= pt)

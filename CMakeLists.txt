@@ -12,4 +12,6 @@ add_executable(ticket src/main.cpp
         src/trainer.h
         src/db/fs_vector.cpp
         src/db/fs_vector.h
-        src/hasher.h)
+        src/hasher.h
+        src/transfer.cpp
+        src/transfer.h)

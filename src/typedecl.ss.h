@@ -149,6 +149,14 @@ static bool privilege_checker(std::string s) {
          (utf8-hans-len-range "s" 0 10))))
    #t)
 
+@(register-checker transferCode
+   (λ ("std::string s")
+     (return
+       (with-checker* "s"
+         (<= len "80")
+         (utf8-hans-len-range "s" 0 20))))
+   #t)
+
 // #define DF(n, len) using n##_t = cstr<len>;
 @(define-syntax DF
    (syntax-rules ()
@@ -173,6 +181,7 @@ static bool privilege_checker(std::string s) {
 @(DF mail 30)
 @(DF trainID 20)
 @(DF stationName 40)
+@(DF transferCode 80)
 
 @(register-converter/p "privilege" "string2non_negative")
 @(register-converter/p "stationNum" "string2non_negative")
@@ -365,10 +374,9 @@ struct train_t {
     return -1;
   }
 
-  time_and_date_t arrive_time(stationName_t name) const {
-    time_and_date_t ret = {0, startTime};
-    int p = get_station_id(name);
+  time_and_date_t arrive_time(int p) const {
     assert(~p);
+    time_and_date_t ret = {0, startTime};
     for (int i = 0; i < p; ++i) {
       ret = time_and_date_advance(ret, travelTimes[i]);
       if (i > 0 and i < p)
@@ -377,11 +385,18 @@ struct train_t {
     return ret;
   }
 
-  time_and_date_t leaving_time(stationName_t name) const {
-    int p = get_station_id(name);
+  time_and_date_t arrive_time(stationName_t name) const {
+    return arrive_time(get_station_id(name));
+  }
+
+  time_and_date_t leaving_time(int p) const {
     assert(~p);
-    time_and_date_t ret = arrive_time(name);
+    time_and_date_t ret = arrive_time(p);
     return p ? time_and_date_advance(ret, stopoverTimes[p - 1]) : ret;
+  }
+
+  time_and_date_t leaving_time(stationName_t name) const {
+    return leaving_time(get_station_id(name));
   }
 };
 
