@@ -17,7 +17,7 @@ public:
 
   ~Bfsp();
 
-  explicit Bfsp(std::string filename, size_t cache_size_ = 2.5 * 1024 * 1024, pos_t cache_start = 0);
+  explicit Bfsp(std::string filename, size_t cache_size_ = 1 * 1024 * 1024, pos_t cache_start = 0);
 
   template<class T>
   void getT(pos_t pos, T &x);
