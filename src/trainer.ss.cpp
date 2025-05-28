@@ -87,6 +87,7 @@ void Trainer::refund_ticket(trainID_t ID, date_t date, stationName_t from, stati
 // TODO: optimize with database query
 sjtu::vector<Trainer::qry_ticket_t> Trainer::query_ticket(date_t date, stationName_t start, stationName_t end,
   bool sort_by_cost, Time_t after) {
+  // return sjtu::vector<Trainer::qry_ticket_t>{};  // TODO: for test ONLY!
   sjtu::vector<Trainer::qry_ticket_t> ret;
   auto asker = [&](const train_t &train) {
     if (!train.released)
@@ -143,6 +144,7 @@ sjtu::vector<Trainer::qry_ticket_t> Trainer::query_ticket(date_t date, stationNa
 
 Trainer::transfer_t Trainer::query_transfer(date_t date, stationName_t start, stationName_t end,
   bool sort_by_cost) {
+  // return transfer_t{};  // TODO: for test ONLY!
 
   sjtu::vector<transfer_t> ret;
 
