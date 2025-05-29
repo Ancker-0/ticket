@@ -177,10 +177,10 @@ static bool privilege_checker(std::string s) {
 
 @(DF username 20)
 @(DF password 30)
-@(DF realname (* 4 5))
+@(DF realname (* 3 5))
 @(DF mail 30)
 @(DF trainID 20)
-@(DF stationName 40)
+@(DF stationName 30)
 @(DF transferCode 80)
 
 @(register-converter/p "privilege" "string2non_negative")
@@ -210,6 +210,21 @@ using seatNum_t = int;
 using date_t = __int8_t;
 using train_type_t = char;
 using time_and_date_t = std::pair<date_t, Time_t>;
+using seatNeat = sjtu::array<unsigned char, 3>;
+
+static seatNum_t getSeat(seatNeat x) {
+  return (int)x[0] << 16 | (int)x[1] << 8 | (int)x[2];
+}
+
+static seatNeat putSeat(seatNum_t x) {
+  seatNeat ret;
+  ret[0] = (x >> 16) & 0xFF;
+  ret[1] = (x >> 8) & 0xFF;
+  ret[2] = x & 0xFF;
+  return ret;
+}
+
+#define WITH_SEAT(value, dull, expr) ({ int dull = getSeat(value); expr; value = putSeat(dull); })
 
 static std::string date_printer(date_t d) {
   // Why there is a train running up to September...
@@ -333,7 +348,7 @@ struct train_t {
 
   // additional field
   bool released;
-  sjtu::array<sjtu::array<int, 99>, 92> seat;
+  sjtu::array<sjtu::array<seatNeat, 99>, 92> seat;
   fs_vector::Head queue;
   int queue_head;
 

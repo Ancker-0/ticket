@@ -135,7 +135,7 @@
       auto tmp1 = train.arrive_time(train.stationNames[i]);
       auto tmp2 = train.leaving_time(train.stationNames[i]);
       tmp1.first += date; tmp2.first += date;
-      res += std::string(train.stationNames[i]) + " " + std::string(i == 0 ? "xx-xx xx:xx" : time_and_date_printer(tmp1) /* arriving time */) + " -> " + std::string(i + 1 == train.stationNum ? "xx-xx xx:xx" : time_and_date_printer(tmp2) /* leaving time */) + " " + number2string(price) + " " + ((i + 1 < train.stationNum) ? number2string(train.seatNum - train.seat[date][i]) : "x");
+      res += std::string(train.stationNames[i]) + " " + std::string(i == 0 ? "xx-xx xx:xx" : time_and_date_printer(tmp1) /* arriving time */) + " -> " + std::string(i + 1 == train.stationNum ? "xx-xx xx:xx" : time_and_date_printer(tmp2) /* leaving time */) + " " + number2string(price) + " " + ((i + 1 < train.stationNum) ? number2string(train.seatNum - getSeat(train.seat[date][i])) : "x");
     }
     return res;
   } catch (const Error &) {

@@ -52,8 +52,8 @@ void Trainer::refund_ticket(trainID_t ID, date_t date, stationName_t from,
   train_t train = query_train(ID);
   int ps = train.get_station_id(from), pt = train.get_station_id(to);
   for (int i = ps; i < pt; ++i) {
-    assert(train.seat[date][i] >= num);
-    train.seat[date][i] -= num;
+    assert(getSeat(train.seat[date][i]) >= num);
+    WITH_SEAT(train.seat[date][i], x, x -= num);
   }
 
   sjtu::vector<invoice_t> blah = vec_ass.getAll<invoice_t>(train.queue);
@@ -64,13 +64,14 @@ void Trainer::refund_ticket(trainID_t ID, date_t date, stationName_t from,
       pt = train.get_station_id(blah[i].to);
       bool success = true;
       for (int j = ps; j < pt; ++j)
-        if (train.seat[blah[i].realdate][j] + blah[i].num > train.seatNum) {
+        if (getSeat(train.seat[blah[i].realdate][j]) + blah[i].num >
+            train.seatNum) {
           success = false;
           break;
         }
       if (success) {
         for (int j = ps; j < pt; ++j)
-          train.seat[blah[i].realdate][j] += blah[i].num;
+          WITH_SEAT(train.seat[blah[i].realdate][j], x, x += blah[i].num);
         blah[i].status = 1;
         accounter.put_invoice(blah[i]);
         // errf("Pending success! %s for train %s\n", blah[i].username,
@@ -90,6 +91,7 @@ sjtu::vector<Trainer::qry_ticket_t> Trainer::query_ticket(date_t date,
                                                           stationName_t end,
                                                           bool sort_by_cost,
                                                           Time_t after) {
+  // return sjtu::vector<Trainer::qry_ticket_t>{};
   sjtu::vector<Trans::transfer_t> vec = transer.ask(start, end);
   sjtu::vector<Trainer::qry_ticket_t> ret;
   for (int i = 0; i < (int)vec.size(); ++i) {
@@ -117,7 +119,7 @@ sjtu::vector<Trainer::qry_ticket_t> Trainer::query_ticket(date_t date,
     seatNum_t seat = 0;
     for (int j = s; j < t; ++j) {
       price += train.prices[j];
-      seat = std::max(seat, train.seat[realdate][j]);
+      seat = std::max(seat, getSeat(train.seat[realdate][j]));
     }
 
     vec[i].leav_time.first += realdate;
@@ -211,7 +213,7 @@ Trainer::transfer_t Trainer::query_transfer(date_t date, stationName_t start,
     seatNum_t seat = 0;
     for (int i = ps + 1; i < train.stationNum; ++i) {
       price += train.prices[i - 1];
-      seat = std::max(seat, train.seat[realdate][i - 1]);
+      seat = std::max(seat, getSeat(train.seat[realdate][i - 1]));
       time_and_date_t arriving_time = train.arrive_time(train.stationNames[i]);
       arriving_time.first += realdate;
       sjtu::vector<qry_ticket_t> vec =

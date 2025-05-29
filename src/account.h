@@ -5,6 +5,7 @@
 #include "db/fs.h"
 #include "db/database.h"
 #include "vector.h"
+#include "hasher.h"
 
 // TODO: int may not fit the price
 struct invoice_t {
@@ -31,7 +32,7 @@ class Account {
 
 public:
   sjtu::vector<username_t> login_list;
-  Database<username_t, user_profile> db;
+  Database<Hasher<username_t>, user_profile> db;
 
   bool add_user(username_t cur, user_profile profile);
   bool login(username_t username, password_t password);

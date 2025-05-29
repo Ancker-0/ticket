@@ -47,12 +47,12 @@ std::pair<int, int> Account::buy_ticket(username_t user, trainID_t trainID,
   if (!date_range(realdate, train.saleDate[0], train.saleDate[1])) return fail;
   int price = 0;
   for (int i = ps; i < pt; ++i) {
-    seat = std::max(seat, train.seat[realdate][i]);
+    seat = std::max(seat, getSeat(train.seat[realdate][i]));
     price += train.prices[i];
   }
   seat = train.seatNum - seat;
   if (seat >= n) {
-    for (int i = ps; i < pt; ++i) train.seat[realdate][i] += n;
+    for (int i = ps; i < pt; ++i) WITH_SEAT(train.seat[realdate][i], x, x += n);
     trainer.update_train(train);
     create_invoice(user, invoice_t{train.trainID, user, 1, realdate, n, price,
                                    start, end, leaving_time, arriving_time});
