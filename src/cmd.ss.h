@@ -12,7 +12,7 @@
        [(name must optional)
         (set! name (str+ (->string name) ""))
         (set! handlers (cons (cons name (list must optional)) handlers))
-        (let* ((args (join ", " (map (lambda (x) (str+ "[[maybe_unused]] const std::string &g" (string x))) (string->list (str+ must optional))))))
+        (let* ((args (join ", " (map (lambda (x) (str+ "const std::string &g" (string x))) (string->list (str+ must optional))))))
           (str+ "std::string " (get-handler name) "(" args ")"))
         ]))
    (define-syntax register-handler/s
