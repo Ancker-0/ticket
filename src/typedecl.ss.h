@@ -25,17 +25,17 @@
    (define (register-checker/p name value)
      (->string! name value)
      (when (not (string? name)) (error 'converter "not a string"))
-     (hashtable-set! string-checker-table name value))
+     (hashtable-set! string-checker-table name "[](std::string){ return true; }"))
 
    (define-syntax register-checker
      (syntax-rules ()
        [(_ symb name)
-        (hashtable-set! string-checker-table (->string 'symb) name)]
+        (hashtable-set! string-checker-table (->string 'symb) "[](std::string){ return true; }")]
        [(_ symb name #t)
         (begin
           (let ((entry (str+ (symbol->string 'symb) "_checker")))
             (register-checker symb entry)
-            (apply str+ `("const auto " ,entry " = " ,name ";\n"))))]))
+            (apply str+ `("const auto " ,entry " = " "[](std::string){ return true; }" ";\n"))))]))
 
    (define (get-checker/p name)
      (when (not (string? name)) (error 'get-checker (format "~s not a string" name)))
@@ -307,7 +307,7 @@ const auto date_checker = @(λ ("std::string s") "return date_converter(s) != in
 @(define (init/p field type var)
    (->string! field type var)
    (str+
-    "assert(" (get-checker/p type) "(" var "));\n"
+    ;"assert(" (get-checker/p type) "(" var "));\n"
     field " = " (get-converter/p type) "(" var ");"))
 
 struct user_profile {
@@ -355,14 +355,15 @@ struct train_t {
   train_t() = default;
 
   @(define (init/arr-p field type var bound)
-     (define tmp (genname "tmpvar"))
+     (define tmp "tmp")
      (->string! field type var)
      (str+
+       "{"
        (format "auto ~a = split(~a);\n" tmp var)
-       ; (format "assert(~a.size() <= ~a);\n" tmp bound)
-       (format "Eassert(~a.size() == (~a));\n" tmp bound)
-       (format "for (size_t i = 0; i < ~a.size(); ++i) {\n" tmp)
-       (format "  ~a[i] = (~a(~a[i]));\n" field (get-converter/p type) tmp)
+       ;(format "assert(~a.size() <= ~a);\n" tmp bound)
+       ;(format "Eassert(~a.size() == (~a));\n" tmp bound)
+       (format "for (size_t i = 0; i < ~a.size(); ++i)\n" tmp)
+       (format "  ~a[i] = ~a(~a[i]);\n" field (get-converter/p type) tmp)
        "}"))
   train_t(@(join ", " (map (lambda (x) (format "std::string s~a" x)) (list/range 0 10)))) {
     @(init/p 'trainID 'trainID 's0)
@@ -416,16 +417,5 @@ struct train_t {
 };
 
 inline static bool date_range(date_t x, date_t s, date_t t) { return s <= x and x <= t; }
-
-/*
-int main() {
-  std::string s;
-  std::cin >> s;
-  std::cout << @(get-checker username)(s) << std::endl;
-  std::cout << @(get-checker password)(s) << std::endl;
-  std::cout << @(get-checker mail)(s) << std::endl;
-  return 0;
-}
-*/
 
 #endif

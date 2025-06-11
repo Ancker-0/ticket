@@ -122,4 +122,11 @@ static sjtu::vector<std::string> split(std::string s) {
   return ret;
 }
 
+static bool char_in(const char &ch, const std::string &rng) {
+  for (const auto &c : rng)
+    if (c == ch)
+      return true;
+  return false;
+}
+
 #endif //UTIL_H

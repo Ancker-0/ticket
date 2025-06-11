@@ -14,8 +14,10 @@
         (except (chezscheme) guard <= > or and))
 (export (import (csm)))
 
+;(define (char-in x y)
+;  (forsome y (lambda (z) ((op "==") x z))))
 (define (char-in x y)
-  (forsome y (lambda (z) ((op "==") x z))))
+  (format "char_in(~a, ~a)" x y))
 
 (define (num-in x l r)
   (->string! x l r)
